@@ -1,0 +1,59 @@
+DMX512 CONTROLLER - QUICK START
+================================
+
+SETUP:
+1. Install dependencies:
+   pip install -r requirements.txt
+
+2. Connect Enttec Open DMX USB to Raspberry Pi USB port
+
+3. Install FTDI drivers (if needed):
+   sudo apt-get install libftdi1
+
+4. Check device connection:
+   ls /dev/ttyUSB*
+
+RUNNING:
+python3 dmx_controller.py
+
+INTERACTIVE COMMANDS:
+- c [channel] [value]  : Set channel 1-512 to value 0-255
+- s [ch1] [ch2] [ch3]  : Set first 3 channels
+- r                     : Rainbow demo
+- d                     : Dimmer demo  
+- x                     : Chase demo
+- c                     : Clear all channels
+- q                     : Quit
+
+BASIC PYTHON USAGE:
+from dmx_controller import DMXController
+
+# Auto-detect device
+controller = DMXController()
+
+# Set single channel
+controller.set_channel(1, 255)  # Channel 1 to full
+controller.send()
+
+# Set multiple channels
+controller.set_channels([255, 128, 0])  # RGB values
+controller.send()
+
+# Get channel value
+value = controller.get_channel(1)
+
+# Clear all
+controller.clear()
+controller.send()
+
+# Cleanup
+controller.close()
+
+Or use context manager:
+with DMXController() as dmx:
+    dmx.set_and_send(1, 200)
+
+DEVICE ISSUES:
+- No /dev/ttyUSB0? Check USB connection
+- Permission denied? Run: sudo chmod 666 /dev/ttyUSB0
+- Still not found? Install FTDI drivers
