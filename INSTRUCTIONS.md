@@ -109,6 +109,30 @@ Supported formats: `.mp3  .wav  .ogg  .flac  .m4a`
 
 ---
 
+## Boot Display (Black Screen)
+
+The Pi is configured for a clean black boot with no splash screens.
+Backups of the original boot files are stored on the Pi.
+
+**To restore the original boot splash/text:**
+```bash
+sudo cp /boot/firmware/config.txt.backup /boot/firmware/config.txt
+sudo cp /boot/firmware/cmdline.txt.backup /boot/firmware/cmdline.txt
+sudo reboot
+```
+
+**To re-apply the black boot (after restoring):**
+```bash
+echo "disable_splash=1" | sudo tee -a /boot/firmware/config.txt
+sudo sed -i 's/$/ quiet splash/' /boot/firmware/cmdline.txt
+sudo reboot
+```
+
+Note: the black screen only affects the HDMI display — SSH always works
+regardless of what the screen shows.
+
+---
+
 ## Files
 
 | File | Purpose |
