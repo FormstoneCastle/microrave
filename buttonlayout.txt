@@ -1,0 +1,10 @@
+Row 1: DJ1, DJ2, DJ3
+Row 2: DJ4, DJ5, DJ6
+Row 3: Start, Stop/Clear, +30s
+Row 4: 1, 2, 3
+Row 5: 4, 5, 6
+Row 6: 7, 8, 9
+Row 7: Vol Up, 0, Vol Down
+Row 8: Door Switch
+
+Total Switches used: 22

@@ -1,0 +1,22 @@
+[Unit]
+Description=MicroRave Music Player
+# Start after the graphical desktop is up
+After=graphical.target
+Wants=graphical.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/pi/MicroRave
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+
+# The wrapper script waits for the display before launching
+ExecStart=/home/pi/MicroRave/start_microrave.sh
+
+# Always restart — covers crashes AND power cuts
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target

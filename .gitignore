@@ -4,3 +4,10 @@ __pycache__/
 venv/
 .lgd-nfy0
 microrave.log
+playcounts.json
+
+# Music library (too large, personal content)
+music/
+
+# Easter egg audio (personal content — add your own files)
+sounds/easter/

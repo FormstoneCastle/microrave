@@ -1,0 +1,48 @@
+SWITCH MONITOR — PIN ASSIGNMENTS
+Raspberry Pi 5 / MicroRave Project
+Updated: 2026-04-25
+================================================
+
+GROUND
+  All switch Commons (C) → daisy-chained → Physical Pin 6 (GND)
+
+WIRING PER SWITCH
+  Common (C) → GND rail
+  NO         → GPIO pin (see table below)
+  NC         → leave unconnected
+
+SW  | GPIO | Physical Pin | Notes
+----|------|--------------|-----------------------------------------------
+ 1  |  4   |  7           |
+ 2  |  5   |  29          |
+ 3  |  6   |  31          |
+ 4  |  26  |  37          | GPIO 7 unavailable (SPI0 CS1, kernel busy)
+ 5  |  27  |  13          | GPIO 8 unavailable (SPI0 CS0, kernel busy)
+ 6  |  9   |  21          |
+ 7  |  2   |  3           | GPIO 10 unavailable (pin 19 missing from ribbon cable)
+ 8  |  11  |  23          | I2C SDA pin — safe, MicroRave does not use I2C
+ 9  |  12  |  32          |
+10  |  13  |  33          |
+11  |  16  |  36          |
+12  |  17  |  11          |
+13  |  18  |  12          |
+14  |  19  |  35          |
+15  |  20  |  38          |
+16  |  21  |  40          |
+17  |  22  |  15          |
+18  |  23  |  16          |
+19  |  24  |  18          |
+20  |  25  |  22          |
+
+SKIPPED / UNAVAILABLE GPIO PINS
+  GPIO 7/8   — SPI0 CS0/CS1 (busy, claimed by kernel)
+  GPIO 10    — Physical pin 19 missing from ribbon cable
+  GPIO 14/15 — UART (reserved)
+  Pin 20     — GND, also missing from ribbon cable
+
+NOTES
+  - Internal pull-up resistors enabled in software (no external resistors needed)
+  - Switch OPEN  = pin reads HIGH (1)
+  - Switch CLOSED = pin reads LOW  (0)
+  - MicroRave does NOT use I2C
+  - For final build: GPIO 10 (pin 19) can replace GPIO 2 for SW7 if full ribbon cable used

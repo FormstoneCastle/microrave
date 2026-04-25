@@ -1,63 +1,53 @@
 """
-MicroRave Music Player  —  v2.0
+MicroRave Music Player  —  v3.1
 ================================
-Turns a microwave shell into a music player.
-
-  - Number keys enter a countdown time (digits shift in from the right)
-  - Closing the door (or pressing START) begins the countdown
-  - Music plays from a selected playlist for the duration
-  - Opening the door pauses music and freezes the timer
-  - Re-closing the door resumes both
-  - Timer hitting 0:00 stops music and plays a finish sound
-  - CANCEL resets to idle at any point
-  - ADD_30 adds 30 seconds at any time
-  - PLAYLIST_PREV / NEXT cycles playlists while idle or entering time
-  - VOLUME_UP / DOWN works in any state
+Microwave-shell music player on Raspberry Pi 5.
 
 Hardware:
-  WS2812 LED strip as 4-digit 7-segment display
-  Number keys 0-9 on individual GPIO pins (or 4x3 matrix — see config)
-  START, CANCEL, ADD_30, PLAYLIST_PREV, PLAYLIST_NEXT, VOLUME_UP, VOLUME_DOWN
-  Magnetic door switch (reed switch)
+  22-switch SPDT panel (20 wired now, Vol Up/Down future)
+  HDMI display — fullscreen virtual 7-segment clock face via pygame
+  HDMI audio → TV speakers
 
-Run normally (real hardware):
+Behavior: microwave-oven UX
+  Idle          Shows 12-hour clock
+  Digit press   Enters countdown time (shifts in from right)
+  Start         Begins countdown + music (door must be closed)
+  Close door    Starts or resumes countdown
+  Open door     Pauses countdown and music
+  +30s          Adds 30 seconds at any time
+  Stop/Clear    Cancels everything, returns to clock
+  DJ1–DJ6       Selects music playlist
+  Vol Up/Down   Adjusts volume (pins reserved, buttons not yet wired)
+
+Easter eggs: special digit sequences trigger a 3-second race-around animation,
+  then play a one-shot clip from sounds/easter/<key>/ before counting down.
+
+Run from desktop terminal:
   sudo venv/bin/python microrave.py
 
-Run in bridge mode (Windows simulator):
-  venv/bin/python microrave.py --bridge
-
-Requirements:
-  pip install pygame rpi_ws281x gpiozero websockets
+Run headless (no desktop session):
+  sudo SDL_VIDEODRIVER=kmsdrm venv/bin/python microrave.py
 """
 
-import argparse
+import json
 import logging
 import os
 import queue
 import random
 import threading
 import time
+from datetime import datetime
 from enum import Enum, auto
 
+import lgpio
 import pygame
-
-# =============================================================================
-# ARGUMENT PARSING  —  done before everything else so imports can branch
-# =============================================================================
-
-_ap = argparse.ArgumentParser(description="MicroRave Music Player")
-_ap.add_argument("--bridge", action="store_true",
-                 help="Use virtual GPIO/LED over WebSocket (for simulator testing)")
-_ap.add_argument("--debug", action="store_true",
-                 help="Enable DEBUG-level logging")
-ARGS = _ap.parse_args()
 
 # =============================================================================
 # LOGGING
 # =============================================================================
 
 logging.basicConfig(
-    level=logging.DEBUG if ARGS.debug else logging.INFO,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(),
@@ -67,229 +57,265 @@ logging.basicConfig(
 log = logging.getLogger("MicroRave")
 
 # =============================================================================
-# HARDWARE / BRIDGE IMPORTS
+# GPIO PIN ASSIGNMENTS  (BCM numbering)
 # =============================================================================
 
-if ARGS.bridge:
-    from ws_bridge import (
-        bridge,
-        VirtualButton       as Button,
-        VirtualOutputDevice as OutputDevice,
-        VirtualPixelStrip   as PixelStrip,
-        Color,
-    )
-    bridge.start()
-    log.info("Bridge mode: GPIO and LED strip are virtual (WebSocket).")
-else:
-    from gpiozero import Button, OutputDevice
-    from rpi_ws281x import Color, PixelStrip
-    log.info("Hardware mode: real GPIO and WS2812 strip.")
+# Row 1–2: DJ playlist selectors
+PIN_DJ = {1: 4, 2: 5, 3: 6, 4: 26, 5: 27, 6: 9}
 
-# =============================================================================
-# CONFIGURATION  —  edit this section to match your hardware wiring
-# =============================================================================
+# Row 3: control buttons
+PIN_START  = 2
+PIN_STOP   = 11
+PIN_ADD_30 = 12
 
-# --- Keypad ---
-# Set KEYPAD_MODE to "individual" (one GPIO per key) or "matrix" (4x3 matrix).
-KEYPAD_MODE = "individual"
-
-# Individual mode: maps digit character -> GPIO pin.
-# IMPORTANT: every pin here must be unique and must not appear in any other
-# pin constant below.  A duplicate will silently overwrite the button registry
-# in bridge mode, causing one key to stop working.
-KEYPAD_PIN_MAP = {
-    "1":  4,  "2":  5,  "3":  6,
-    "4": 12,  "5": 13,  "6": 16,
-    "7": 17,  "8": 18,  "9": 19,
-              "0": 20,
+# Rows 4–7: digit buttons
+PIN_DIGITS = {
+    1: 13, 2: 16, 3: 17,
+    4: 18, 5: 19, 6: 20,
+    7: 21, 8: 22, 9: 23,
+    0: 24,
 }
 
-# Matrix mode: row and column pins, and the key layout.
-MATRIX_ROW_PINS = [21, 22, 23, 24]
-MATRIX_COL_PINS = [26, 27, 28]
-MATRIX_LAYOUT   = [
-    ["1", "2", "3"],
-    ["4", "5", "6"],
-    ["7", "8", "9"],
-    ["*", "0", "#"],
-]
+# Row 7: volume (reserved — not yet wired)
+PIN_VOL_UP   = 3
+PIN_VOL_DOWN = 0
 
-# --- Control buttons  (must not share any pin with KEYPAD_PIN_MAP) ---
-PIN_START         =  8
-PIN_CANCEL        =  9
-PIN_ADD_30        = 10
-PIN_PLAYLIST_PREV = 11
-PIN_PLAYLIST_NEXT = 14
-PIN_VOLUME_UP     = 15
-PIN_VOLUME_DOWN   = 25   # NOTE: not 16 — that is DIGIT_6 in individual mode
-
-# --- Door switch ---
-PIN_DOOR          =  7
-DOOR_CLOSED_STATE = True   # True  = pin is pressed when door is closed
-                            # False = pin is released when door is closed
-DOOR_OPEN_TIMEOUT = 300    # seconds before auto-cancel if door stays open (0=disabled)
-
-# --- LED display ---
-LED_PIN          = 18   # GPIO pin for WS2812 data
-LEDS_PER_SEGMENT =  8   # LEDs per segment bar
-NUM_DIGITS       =  4   # display digits
-LED_BRIGHTNESS   = 200  # 0-255
-
-# --- Display colours (R, G, B) ---
-COLOR_WHITE    = (255, 255, 255)   # idle / counting down
-COLOR_CYAN     = (  0, 180, 255)   # entering time
-COLOR_AMBER    = (255, 120,   0)   # paused (door open)
-COLOR_GREEN    = (  0, 255,   0)   # finished
-COLOR_OFF      = (  0,   0,   0)   # segment off
-
-# --- Audio ---
-MUSIC_ROOT     = "music"
-FINISH_SOUND   = "sounds/ding.mp3"
-BEEP_SOUND     = "sounds/beep.mp3"
-VOLUME_DEFAULT = 70    # 0-100
-VOLUME_STEP    =  5    # per button press
+# Row 8: door switch
+PIN_DOOR = 25
 
 # =============================================================================
-# PIN COLLISION GUARD
-# Run at import time so a misconfiguration is caught immediately on startup.
+# SETTINGS
 # =============================================================================
 
-def _assert_unique_pins():
-    named = {
-        "PIN_START":         PIN_START,
-        "PIN_CANCEL":        PIN_CANCEL,
-        "PIN_ADD_30":        PIN_ADD_30,
-        "PIN_PLAYLIST_PREV": PIN_PLAYLIST_PREV,
-        "PIN_PLAYLIST_NEXT": PIN_PLAYLIST_NEXT,
-        "PIN_VOLUME_UP":     PIN_VOLUME_UP,
-        "PIN_VOLUME_DOWN":   PIN_VOLUME_DOWN,
-        "PIN_DOOR":          PIN_DOOR,
-    }
-    if KEYPAD_MODE == "individual":
-        for char, pin in KEYPAD_PIN_MAP.items():
-            named[f"DIGIT_{char}"] = pin
+MUSIC_ROOT        = "music"
+SOUNDS_DIR        = "sounds"
+PLAYCOUNTS_FILE   = "playcounts.json"
+EASTER_EGG_DIR    = os.path.join(SOUNDS_DIR, "easter")
+BEEP_SOUND        = os.path.join(SOUNDS_DIR, "beep.mp3")
+DING_SOUND        = os.path.join(SOUNDS_DIR, "ding.mp3")
+VOLUME_DEFAULT    = 70    # 0–100
+VOLUME_STEP       = 5
+DOOR_OPEN_TIMEOUT = 300   # seconds before auto-cancel when door left open; 0 = disabled
+DEBOUNCE_S        = 0.05  # seconds to ignore re-triggers after a switch edge
+GPIO_POLL_HZ      = 50    # GPIO polling rate
 
-    seen   = {}
-    errors = []
-    for name, pin in named.items():
-        if pin in seen:
-            errors.append(f"  Pin {pin} used by both {seen[pin]} and {name}")
-        else:
-            seen[pin] = name
-
-    if errors:
-        msg = "PIN COLLISION — fix configuration before running:\n" + "\n".join(errors)
-        log.critical(msg)
-        raise SystemExit(1)
-
-_assert_unique_pins()
-
-# =============================================================================
-# DISPLAY  —  7-segment LED strip
-# =============================================================================
-
-# Segment order as wired on the physical strip.
-# Each digit uses 7 segments in this order, each LEDS_PER_SEGMENT LEDs wide.
-SEGMENT_ORDER = ["g", "b", "a", "f", "e", "d", "c"]
-
-# Which segments are lit for each displayable character.
-CHAR_SEGMENTS = {
-    "0": set("abcdef"),
-    "1": set("bc"),
-    "2": set("abdeg"),
-    "3": set("abcdg"),
-    "4": set("bcfg"),
-    "5": set("acdfg"),
-    "6": set("acdefg"),
-    "7": set("abc"),
-    "8": set("abcdefg"),
-    "9": set("abcdfg"),
-    "-": set("g"),
-    " ": set(),
+# Easter egg trigger map
+# key = digit string as typed; seconds/mm/ss define the countdown
+# 6767 overrides to 0:67 (67 sec) — the fun is in entering it
+EASTER_EGGS: dict[str, dict] = {
+    "007":  {"folder": "007",  "seconds": 102,  "mm": 1,  "ss": 42},
+    "42":   {"folder": "042",  "seconds": 213,  "mm": 3,  "ss": 33},
+    "069":  {"folder": "069",  "seconds": 69,   "mm": 0,  "ss": 69},
+    "420":  {"folder": "420",  "seconds": 260,  "mm": 4,  "ss": 20},
+    "666":  {"folder": "666",  "seconds": 426,  "mm": 6,  "ss": 66},
+    "67":   {"folder": "067",  "seconds": 67,   "mm": 0,  "ss": 67},
+    "6767": {"folder": "6767", "seconds": 67,   "mm": 0,  "ss": 67},
+    "8008": {"folder": "8008", "seconds": 4808, "mm": 80, "ss": 8},
 }
 
+RACE_DURATION = 3.0   # seconds for race-around animation
+RACE_STEP_S   = 0.08  # seconds per animation frame
+
+# =============================================================================
+# DISPLAY COLORS & GEOMETRY
+# =============================================================================
+
+COLOR_BG      = (  0,   0,   0)   # black background
+COLOR_ON      = (  0, 255,   0)   # bright green segments
+COLOR_DIM     = (  0,  13,   0)   # dim green for unlit segments
+SHOW_DIM_SEGS = True               # show unlit segments (real 7-seg look)
+
+# =============================================================================
+# 7-SEGMENT CHARACTER MAP
+# =============================================================================
+
+#   _a_
+#  f   b
+#   _g_
+#  e   c
+#   _d_
+
+CHAR_SEGS: dict[str, set] = {
+    '0': set('abcdef'),
+    '1': set('bc'),
+    '2': set('abdeg'),
+    '3': set('abcdg'),
+    '4': set('bcfg'),
+    '5': set('acdfg'),
+    '6': set('acdefg'),
+    '7': set('abc'),
+    '8': set('abcdefg'),
+    '9': set('abcdfg'),
+    'd': set('bcdeg'),    # lowercase d  (used in DJ flash: "dJ x")
+    'J': set('bcd'),      # uppercase J
+    '-': set('g'),
+    ' ': set(),
+}
+
+
+# =============================================================================
+# DISPLAY
+# =============================================================================
 
 class Display:
     """
-    Drives the WS2812 LED strip as a 4-digit 7-segment display.
-    Thread-safe: show(), set_color(), and clear() may be called from any thread.
+    Fullscreen pygame window rendering a 4-digit 7-segment display.
+    Always green on black.
+
+    Thread safety:
+      show() / show_segs() — safe to call from any thread (sets a pending update)
+      render()             — must be called from the main thread only
     """
 
     def __init__(self):
-        total = NUM_DIGITS * 7 * LEDS_PER_SEGMENT
-        self._strip = PixelStrip(
-            total, LED_PIN,
-            freq_hz=800_000, dma=10, invert=False,
-            brightness=LED_BRIGHTNESS, channel=0,
+        info = pygame.display.Info()
+        self._sw = info.current_w
+        self._sh = info.current_h
+
+        self._screen = pygame.display.set_mode(
+            (self._sw, self._sh), pygame.FULLSCREEN | pygame.NOFRAME
         )
-        self._color = COLOR_WHITE
-        self._lock  = threading.Lock()
-        try:
-            self._strip.begin()
-            log.info("Display ready — %d LEDs (%d digits × 7 segs × %d LEDs/seg).",
-                     total, NUM_DIGITS, LEDS_PER_SEGMENT)
-        except Exception as exc:
-            log.error("Display init failed: %s  Running without display.", exc)
-            self._strip = None
+        pygame.display.set_caption("MicroRave")
+        pygame.mouse.set_visible(False)
 
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+        # Digit geometry — fill screen minus MARGIN on each edge
+        MARGIN   = 20
+        avail_w  = self._sw - 2 * MARGIN
+        avail_h  = self._sh - 2 * MARGIN
+        ASPECT   = 0.55   # digit width / digit height
 
-    def set_color(self, color: tuple):
-        """Set the on-colour for subsequent show() calls."""
+        dh_from_w = avail_w / (ASPECT * (4 + 1/3 + 0.4))
+        self._dh  = int(min(dh_from_w, avail_h))
+        self._dw  = int(self._dh * ASPECT)
+        self._T   = max(8, int(self._dh * 0.10))
+        self._G   = max(2, int(self._T  * 0.15))
+
+        col_w = self._dw // 3
+        sp    = max(4, int(self._dw * 0.08))
+
+        total_w = 4 * self._dw + col_w + 5 * sp
+        ox = (self._sw - total_w) // 2
+        oy = (self._sh - self._dh)  // 2
+
+        self._dx = [
+            ox,
+            ox +     self._dw + sp,
+            ox + 2 * self._dw + 2 * sp + col_w + sp,
+            ox + 3 * self._dw + 3 * sp + col_w + sp,
+        ]
+        self._colon_x = ox + 2 * self._dw + 2 * sp
+        self._col_w   = col_w
+        self._oy      = oy
+
+        self._lock     = threading.Lock()
+        self._text     = "    "
+        self._segs:    list[set] = [set(), set(), set(), set()]
+        self._use_segs = False
+        self._colon    = False
+        self._dirty    = True
+
+        log.info("Display ready: %dx%d  digit %dx%d  T=%d",
+                 self._sw, self._sh, self._dw, self._dh, self._T)
+
+    def show(self, text: str, colon: bool = True):
+        """Queue a character display update (thread-safe)."""
+        clean = text.replace(":", "").replace(".", "")[:4].ljust(4)
         with self._lock:
-            self._color = color
+            self._text     = clean
+            self._colon    = colon
+            self._use_segs = False
+            self._dirty    = True
 
-    def show(self, text: str):
-        """
-        Render text on the display.  text is up to 4 characters; a colon or
-        dot is stripped (the colon position is always implied by the layout).
-        Unknown characters render as blanks.
-        """
-        log.debug("Display.show(%r)", text)
+    def show_segs(self, segs: list[set], colon: bool = False):
+        """Queue an arbitrary segment display update (thread-safe). segs = list of 4 sets."""
         with self._lock:
-            if not self._strip:
+            self._segs     = list(segs)
+            self._colon    = colon
+            self._use_segs = True
+            self._dirty    = True
+
+    def render(self):
+        """Flush pending update to screen. Call from the main thread only."""
+        with self._lock:
+            if not self._dirty:
                 return
-            clean = text.replace(":", "").replace(".", "")[:NUM_DIGITS].rjust(NUM_DIGITS)
-            for pos, char in enumerate(clean):
-                self._render_digit(pos, char)
-            self._flush()
+            text     = self._text
+            segs     = self._segs
+            colon    = self._colon
+            use_segs = self._use_segs
+            self._dirty = False
 
-    def clear(self):
-        """Turn off every LED."""
-        with self._lock:
-            if not self._strip:
-                return
-            for i in range(self._strip.numPixels()):
-                self._strip.setPixelColor(i, Color(*COLOR_OFF))
-            self._flush()
-
-    def set_brightness(self, value: int):
-        with self._lock:
-            if self._strip:
-                self._strip.setBrightness(max(0, min(255, value)))
-                self._flush()
+        self._screen.fill(COLOR_BG)
+        if use_segs:
+            for i, seg_set in enumerate(segs):
+                self._draw_segs_direct(self._dx[i], self._oy, seg_set)
+        else:
+            for i, ch in enumerate(text):
+                self._draw_digit(self._dx[i], self._oy, ch)
+        if colon:
+            self._draw_colon()
+        pygame.display.flip()
 
     # ------------------------------------------------------------------
-    # Private
+    # Private drawing helpers
     # ------------------------------------------------------------------
 
-    def _render_digit(self, pos: int, char: str):
-        lit      = CHAR_SEGMENTS.get(char, set())   # unknown char -> all off
-        base     = pos * 7 * LEDS_PER_SEGMENT
-        color_on = self._color
-        for seg_i, seg_name in enumerate(SEGMENT_ORDER):
-            color    = Color(*color_on) if seg_name in lit else Color(*COLOR_OFF)
-            seg_base = base + seg_i * LEDS_PER_SEGMENT
-            for led in range(LEDS_PER_SEGMENT):
-                self._strip.setPixelColor(seg_base + led, color)
+    def _seg_rects(self, x: int, y: int) -> dict:
+        """Build segment-name → pygame rect mapping for a digit at (x, y)."""
+        H, W, T, G = self._dh, self._dw, self._T, self._G
+        h2 = H // 2
+        return {
+            'a': (x + T + G,  y,              W - 2*T - 2*G, T       ),
+            'b': (x + W - T,  y + T + G,      T,             h2-T-2*G),
+            'c': (x + W - T,  y + h2 + G,     T,             h2-T-2*G),
+            'd': (x + T + G,  y + H - T,      W - 2*T - 2*G, T       ),
+            'e': (x,          y + h2 + G,      T,             h2-T-2*G),
+            'f': (x,          y + T + G,       T,             h2-T-2*G),
+            'g': (x + T + G,  y + h2 - T//2,  W - 2*T - 2*G, T       ),
+        }
 
-    def _flush(self):
-        try:
-            self._strip.show()
-        except Exception as exc:
-            log.warning("Display flush error: %s", exc)
+    def _draw_digit(self, x: int, y: int, ch: str):
+        self._draw_segs_direct(x, y, CHAR_SEGS.get(ch, set()))
+
+    def _draw_segs_direct(self, x: int, y: int, lit: set):
+        for seg, rect in self._seg_rects(x, y).items():
+            if seg in lit:
+                color = COLOR_ON
+            elif SHOW_DIM_SEGS:
+                color = COLOR_DIM
+            else:
+                continue
+            pygame.draw.rect(self._screen, color, rect, border_radius=2)
+
+    def _draw_colon(self):
+        cx = self._colon_x + self._col_w // 2
+        r  = max(4, self._T // 2)
+        pygame.draw.circle(self._screen, COLOR_ON, (cx, self._oy + self._dh // 3),     r)
+        pygame.draw.circle(self._screen, COLOR_ON, (cx, self._oy + 2 * self._dh // 3), r)
+
+
+# =============================================================================
+# RACE-AROUND ANIMATION
+# =============================================================================
+
+def _race_animation(display: Display, abort: threading.Event,
+                    duration: float = RACE_DURATION):
+    """
+    Chase a glowing cluster of segments clockwise around all 4 digits simultaneously.
+    Runs synchronously on the calling thread; respects abort event for clean cancellation.
+    """
+    # Clockwise perimeter order (skips middle 'g')
+    SEQ  = ['a', 'b', 'c', 'd', 'e', 'f']
+    TAIL = 2   # trailing segments in the glow cluster
+    n    = len(SEQ)
+    steps = int(duration / RACE_STEP_S)
+
+    for i in range(steps):
+        if abort.is_set():
+            return
+        lit = {SEQ[(i - t) % n] for t in range(TAIL + 1)}
+        display.show_segs([lit, lit, lit, lit], colon=(i % 6 < 3))
+        time.sleep(RACE_STEP_S)
 
 
 # =============================================================================
@@ -297,48 +323,56 @@ class Display:
 # =============================================================================
 
 class PlaylistManager:
-    """Scans MUSIC_ROOT for subdirectories containing audio files."""
-
-    _AUDIO_EXTS = (".mp3", ".wav", ".ogg", ".flac", ".m4a")
+    _EXTS = ('.mp3', '.wav', '.ogg', '.flac', '.m4a')
 
     def __init__(self):
-        self._playlists: list[tuple[str, list[str]]] = []
-        self._index = 0
-        self._load()
+        self._lists: dict[int, list] = {}
+        for n in range(1, 7):
+            folder = os.path.join(MUSIC_ROOT, f"dj{n}")
+            if os.path.isdir(folder):
+                tracks = sorted(
+                    os.path.join(folder, f)
+                    for f in os.listdir(folder)
+                    if f.lower().endswith(self._EXTS)
+                )
+                self._lists[n] = tracks
+                log.info("DJ%d: %d track(s)", n, len(tracks))
+            else:
+                self._lists[n] = []
+                log.warning("DJ%d folder not found: %s", n, folder)
+        self._sel = 1
 
-    def _load(self):
-        if not os.path.isdir(MUSIC_ROOT):
-            raise RuntimeError(f"Music root not found: '{MUSIC_ROOT}'")
-        for entry in sorted(os.scandir(MUSIC_ROOT), key=lambda e: e.name.lower()):
-            if not entry.is_dir():
-                continue
-            tracks = sorted(
-                os.path.join(entry.path, f)
-                for f in os.listdir(entry.path)
-                if f.lower().endswith(self._AUDIO_EXTS)
-            )
-            if tracks:
-                self._playlists.append((entry.name, tracks))
-        if not self._playlists:
-            raise RuntimeError(f"No playlists found in '{MUSIC_ROOT}'.")
-        log.info("Playlists loaded: %s", [p[0] for p in self._playlists])
+    def select(self, dj: int):
+        if 1 <= dj <= 6:
+            self._sel = dj
+            log.info("Selected DJ%d (%d tracks)", dj, len(self._lists[dj]))
 
     @property
-    def current_name(self) -> str:
-        return self._playlists[self._index][0]
+    def selected(self) -> int:
+        return self._sel
 
-    def shuffled_tracks(self) -> list[str]:
-        tracks = list(self._playlists[self._index][1])
+    def shuffled_tracks(self) -> list:
+        tracks = list(self._lists.get(self._sel, []))
         random.shuffle(tracks)
         return tracks
 
-    def next(self):
-        self._index = (self._index + 1) % len(self._playlists)
-        log.info("Playlist → %s", self.current_name)
-
-    def prev(self):
-        self._index = (self._index - 1) % len(self._playlists)
-        log.info("Playlist → %s", self.current_name)
+    def easter_tracks(self, key: str) -> list:
+        """Return audio tracks for easter egg key, or [] if folder missing/empty."""
+        egg = EASTER_EGGS.get(key)
+        if not egg:
+            return []
+        folder = os.path.join(EASTER_EGG_DIR, egg["folder"])
+        if not os.path.isdir(folder):
+            log.info("Easter egg '%s': folder not found — skipping.", key)
+            return []
+        tracks = sorted(
+            os.path.join(folder, f)
+            for f in os.listdir(folder)
+            if f.lower().endswith(self._EXTS)
+        )
+        if not tracks:
+            log.info("Easter egg '%s': folder empty — skipping.", key)
+        return tracks
 
 
 # =============================================================================
@@ -346,80 +380,78 @@ class PlaylistManager:
 # =============================================================================
 
 class AudioEngine:
-    """
-    Wraps pygame.mixer.  Tries audio drivers in order until one works.
-    Falls back to silent mode if none do — the app continues running.
-    """
-
     _MUSIC_END = pygame.USEREVENT + 1
 
     def __init__(self):
-        os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
         self._ok      = False
         self._volume  = VOLUME_DEFAULT
-        self._tracks: list[str] = []
-        self._t_index = 0
+        self._tracks: list = []
+        self._t_idx   = 0
         self._playing = False
         self._paused  = False
         self._lock    = threading.Lock()
+        self._done    = threading.Event()
+        self._egg_complete_cb = None  # set during easter egg play
+        self._counts  = self._load_counts()
 
         for driver in ("pipewire", "pulseaudio", "alsa", "dummy"):
             os.environ["SDL_AUDIODRIVER"] = driver
             try:
-                pygame.mixer.pre_init(frequency=44100, size=-16, channels=2, buffer=512)
-                pygame.init()
+                pygame.mixer.quit()
+                pygame.mixer.pre_init(44100, -16, 2, 512)
                 pygame.mixer.init()
                 log.info("Audio driver: %s", driver)
                 self._ok = True
                 break
             except Exception as exc:
-                log.warning("Audio driver '%s' unavailable: %s", driver, exc)
-                # Full teardown before trying next driver
-                try:
-                    pygame.mixer.quit()
-                except Exception:
-                    pass
-                try:
-                    pygame.quit()
-                except Exception:
-                    pass
+                log.warning("Audio driver '%s' failed: %s", driver, exc)
 
         if not self._ok:
-            log.error("All audio drivers failed — running silent.")
-            os.environ["SDL_AUDIODRIVER"] = "dummy"
-            pygame.init()
+            log.error("All audio drivers failed — silent mode.")
+            return
 
-        if self._ok:
-            pygame.mixer.set_num_channels(8)
-            pygame.mixer.music.set_endevent(self._MUSIC_END)
-            self._beep_ch   = pygame.mixer.Channel(7)
-            self._finish_ch = pygame.mixer.Channel(6)
-        else:
-            self._beep_ch   = None
-            self._finish_ch = None
+        pygame.mixer.set_num_channels(8)
+        pygame.mixer.music.set_endevent(self._MUSIC_END)
+        self._beep_ch  = pygame.mixer.Channel(7)
+        self._ding_ch  = pygame.mixer.Channel(6)
+        self._beep_snd = self._load(BEEP_SOUND, "beep")
+        self._ding_snd = self._load(DING_SOUND, "ding")
+        self._apply_volume()
 
-        self._beep_snd   = self._load_sound(BEEP_SOUND,   "beep")   if self._ok else None
-        self._finish_snd = self._load_sound(FINISH_SOUND, "finish") if self._ok else None
-
-        if self._ok:
-            self._apply_volume()
-            threading.Thread(
-                target=self._event_loop, name="AudioEvents", daemon=True
-            ).start()
-
-        log.info("Audio engine ready (ok=%s, volume=%d%%).", self._ok, self._volume)
+        threading.Thread(target=self._event_pump,    name="AudioPump",    daemon=True).start()
+        threading.Thread(target=self._track_manager, name="TrackManager", daemon=True).start()
+        log.info("Audio ready (volume=%d%%)", self._volume)
 
     # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
 
-    def start(self, tracks: list[str]):
+    def start(self, tracks: list):
+        """Start normal playlist playback."""
         if not self._ok or not tracks:
             return
         with self._lock:
-            self._tracks  = tracks
-            self._t_index = 0
-            self._playing = True
-            self._paused  = False
-        self._play_track(tracks[0])
+            self._tracks          = tracks
+            self._t_idx           = 0
+            self._playing         = True
+            self._paused          = False
+            self._egg_complete_cb = None
+        self._play(tracks[0])
+
+    def start_easter(self, track: str, on_complete=None):
+        """Play a single easter egg clip. on_complete fires (from dispatch thread) when done."""
+        if not self._ok:
+            if on_complete:
+                on_complete()
+            return
+        with self._lock:
+            self._tracks          = [track]
+            self._t_idx           = 0
+            self._playing         = True
+            self._paused          = False
+            self._egg_complete_cb = on_complete
+        self._play(track)
+        log.info("Easter egg track: %s", os.path.basename(track))
 
     def pause(self):
         if not self._ok:
@@ -429,7 +461,6 @@ class AudioEngine:
                 return
             self._paused = True
         pygame.mixer.music.pause()
-        log.info("Audio paused.")
 
     def resume(self):
         if not self._ok:
@@ -439,27 +470,24 @@ class AudioEngine:
                 return
             self._paused = False
         pygame.mixer.music.unpause()
-        log.info("Audio resumed.")
 
     def stop(self):
         with self._lock:
-            self._playing = False
-            self._paused  = False
+            self._playing         = False
+            self._paused          = False
+            self._egg_complete_cb = None
         if self._ok:
             pygame.mixer.music.stop()
-
-    def play_finish_sound(self):
-        self.stop()
-        if self._ok and self._finish_snd and self._finish_ch:
-            self._finish_ch.set_volume(self._volume / 100)
-            self._finish_ch.play(self._finish_snd)
-            log.info("Finish sound.")
 
     def beep(self):
         if self._ok and self._beep_snd and self._beep_ch:
             self._beep_ch.stop()
-            self._beep_ch.set_volume(self._volume / 100)
             self._beep_ch.play(self._beep_snd)
+
+    def ding(self):
+        self.stop()
+        if self._ok and self._ding_snd and self._ding_ch:
+            self._ding_ch.play(self._ding_snd)
 
     def volume_up(self):
         self._volume = min(100, self._volume + VOLUME_STEP)
@@ -472,9 +500,11 @@ class AudioEngine:
         log.info("Volume → %d%%", self._volume)
 
     # ------------------------------------------------------------------
+    # Private
+    # ------------------------------------------------------------------
 
     @staticmethod
-    def _load_sound(path: str, label: str):
+    def _load(path: str, label: str):
         try:
             snd = pygame.mixer.Sound(path)
             log.info("Loaded %s: %s", label, path)
@@ -483,42 +513,68 @@ class AudioEngine:
             log.error("Cannot load %s '%s': %s", label, path, exc)
             return None
 
-    def _play_track(self, path: str):
+    def _load_counts(self) -> dict:
+        try:
+            with open(PLAYCOUNTS_FILE, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def _save_counts(self):
+        try:
+            with open(PLAYCOUNTS_FILE, 'w') as f:
+                json.dump(self._counts, f, indent=2, sort_keys=True)
+        except Exception as exc:
+            log.warning("Could not save play counts: %s", exc)
+
+    def _play(self, path: str):
+        key = os.path.basename(path)
+        self._counts[key] = self._counts.get(key, 0) + 1
+        self._save_counts()
         try:
             pygame.mixer.music.load(path)
             pygame.mixer.music.set_volume(self._volume / 100)
             pygame.mixer.music.play()
-            log.info("Now playing: %s", os.path.basename(path))
+            log.info("Playing: %s (play #%d)", key, self._counts[key])
         except Exception as exc:
-            log.error("Cannot play '%s': %s — skipping.", path, exc)
-            pygame.event.post(pygame.event.Event(self._MUSIC_END))
+            log.error("Cannot play '%s': %s — skipping", path, exc)
+            self._done.set()
 
-    def _event_loop(self):
-        """Advance to next track when the current one ends."""
+    def _event_pump(self):
         while True:
             try:
-                event = pygame.event.wait()
-                if event.type != self._MUSIC_END:
+                if pygame.event.get(self._MUSIC_END):
+                    self._done.set()
+            except Exception:
+                return
+            time.sleep(0.1)
+
+    def _track_manager(self):
+        """Advance playlist on track end; fire callback for easter egg clips."""
+        while True:
+            self._done.wait()
+            self._done.clear()
+            with self._lock:
+                if not self._playing or self._paused:
                     continue
-                with self._lock:
-                    if not self._playing or self._paused:
-                        continue
-                    self._t_index = (self._t_index + 1) % max(1, len(self._tracks))
-                    next_track    = self._tracks[self._t_index]
-                self._play_track(next_track)
-            except Exception as exc:
-                log.error("Audio event loop: %s", exc)
-                time.sleep(0.5)
+                egg_cb = self._egg_complete_cb
+                if egg_cb:
+                    # Easter egg clip finished — signal app, stop music
+                    self._egg_complete_cb = None
+                    self._playing = False
+                    nxt = None
+                else:
+                    self._t_idx = (self._t_idx + 1) % max(1, len(self._tracks))
+                    nxt = self._tracks[self._t_idx]
+
+            if egg_cb:
+                egg_cb()
+            elif nxt:
+                self._play(nxt)
 
     def _apply_volume(self):
-        if not self._ok:
-            return
-        v = self._volume / 100
-        pygame.mixer.music.set_volume(v)
-        if self._beep_ch:
-            self._beep_ch.set_volume(v)
-        if self._finish_ch:
-            self._finish_ch.set_volume(v)
+        if self._ok:
+            pygame.mixer.music.set_volume(self._volume / 100)
 
 
 # =============================================================================
@@ -527,9 +583,10 @@ class AudioEngine:
 
 class CountdownTimer:
     """
-    Accurate 1-second countdown.  Calls on_tick(remaining) every second and
-    on_finish() when remaining hits zero.  All callbacks are fired from the
-    timer thread; callers should post to a queue rather than act directly.
+    Accurate 1-second countdown.
+    on_tick(remaining) fires every second.
+    on_finish() fires when remaining reaches zero.
+    Both callbacks come from the timer thread — callers should post to a queue.
     """
 
     def __init__(self, on_tick, on_finish):
@@ -537,37 +594,37 @@ class CountdownTimer:
         self._on_finish = on_finish
         self._remaining = 0
         self._lock      = threading.Lock()
-        self._stop_evt  = threading.Event()
-        self._pause_evt = threading.Event()
-        self._pause_evt.set()   # not paused initially
+        self._stop      = threading.Event()
+        self._pause     = threading.Event()
+        self._pause.set()
         self._thread: threading.Thread | None = None
 
     def start(self, seconds: int):
         self.stop()
         with self._lock:
             self._remaining = max(0, seconds)
-        self._stop_evt.clear()
-        self._pause_evt.set()
+        self._stop.clear()
+        self._pause.set()
         self._thread = threading.Thread(target=self._run, name="Countdown", daemon=True)
         self._thread.start()
 
     def pause(self):
-        self._pause_evt.clear()
+        self._pause.clear()
 
     def resume(self):
-        self._pause_evt.set()
+        self._pause.set()
 
     def stop(self):
-        self._stop_evt.set()
-        self._pause_evt.set()   # unblock if paused so thread can exit
+        self._stop.set()
+        self._pause.set()
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=2)
         self._thread = None
 
-    def add_seconds(self, n: int):
+    def add(self, n: int):
         with self._lock:
             self._remaining = max(0, self._remaining + n)
-        log.info("Timer +%ds → %ds remaining.", n, self._remaining)
+        log.info("Timer +%ds → %d remaining", n, self._remaining)
 
     @property
     def remaining(self) -> int:
@@ -575,9 +632,9 @@ class CountdownTimer:
             return self._remaining
 
     def _run(self):
-        while not self._stop_evt.is_set():
-            self._pause_evt.wait()
-            if self._stop_evt.is_set():
+        while not self._stop.is_set():
+            self._pause.wait()
+            if self._stop.is_set():
                 break
             with self._lock:
                 r = self._remaining
@@ -585,9 +642,8 @@ class CountdownTimer:
             if r <= 0:
                 self._on_finish()
                 return
-            # Wait exactly 1 second (or until stop)
-            self._stop_evt.wait(timeout=1.0)
-            if not self._stop_evt.is_set():
+            self._stop.wait(timeout=1.0)
+            if not self._stop.is_set():
                 with self._lock:
                     self._remaining = max(0, self._remaining - 1)
 
@@ -598,37 +654,47 @@ class CountdownTimer:
 
 class TimeEntryBuffer:
     """
-    Accumulates digit presses into a MM:SS time value.
-    Digits shift in from the right, like a real microwave keypad.
+    Accumulates digit presses into MM:SS time.
+    Digits shift in from the right, exactly like a real microwave keypad.
     Rejects entries that would exceed 99:59.
+    Tracks the raw typed sequence for easter egg detection.
     """
 
-    _MAX_SECONDS = 99 * 60 + 59
+    _MAX = 99 * 60 + 59
 
     def __init__(self):
-        self._d = [0, 0, 0, 0]
+        self._d     = [0, 0, 0, 0]
+        self._typed: list[int] = []   # digits as actually pressed (up to 4)
 
     def push(self, digit: int):
-        candidate = self._d[1:] + [digit]
-        # Accept only if the resulting time is within bounds.
-        total = (candidate[0] * 10 + candidate[1]) * 60 + (candidate[2] * 10 + candidate[3])
-        if total <= self._MAX_SECONDS:
-            self._d = candidate
+        c = self._d[1:] + [digit]
+        if (c[0] * 10 + c[1]) * 60 + (c[2] * 10 + c[3]) <= self._MAX:
+            self._d     = c
+            self._typed = (self._typed + [digit])[-4:]
 
     def clear(self):
-        self._d = [0, 0, 0, 0]
+        self._d     = [0, 0, 0, 0]
+        self._typed = []
 
     def to_seconds(self) -> int:
         return (self._d[0] * 10 + self._d[1]) * 60 + (self._d[2] * 10 + self._d[3])
 
-    def to_display_string(self) -> str:
-        # Normalize through seconds so that e.g. raw buffer [0,0,6,0]
-        # (from typing "6","0") displays as "01:00" not "00:60".
-        t = self.to_seconds()
-        return "%02d:%02d" % (min(t // 60, 99), t % 60)
-
     def is_zero(self) -> bool:
         return self.to_seconds() == 0
+
+    def raw_mm(self) -> int:
+        return self._d[0] * 10 + self._d[1]
+
+    def raw_ss(self) -> int:
+        return self._d[2] * 10 + self._d[3]
+
+    def typed_str(self) -> str:
+        """Digits as actually pressed — used for easter egg matching."""
+        return ''.join(str(d) for d in self._typed)
+
+    def display_str(self) -> str:
+        """4-char string for the display (raw digits, no normalization)."""
+        return "%d%d%d%d" % tuple(self._d)
 
 
 # =============================================================================
@@ -644,29 +710,32 @@ class State(Enum):
 
 
 # =============================================================================
-# MICRORAVE APPLICATION
+# APPLICATION
 # =============================================================================
 
 class MicroRaveApp:
     """
-    Central application class.  All state changes happen on the dispatch
-    thread (a single-threaded queue), which prevents race conditions.
-    Button callbacks and timer callbacks post work items to the queue.
+    All state changes run on a single dispatch thread (via a SimpleQueue).
+    GPIO callbacks and timer callbacks post work items to the queue.
+    Display rendering and the pygame event pump run on the main thread.
     """
 
     def __init__(self):
-        self._state      = State.IDLE
-        self._state_lock = threading.Lock()
-        self._q          = queue.SimpleQueue()
-        self._door_timer:    threading.Timer | None = None
-        self._door_is_closed: bool                = False  # set by _read_initial_door_state
+        self._state       = State.IDLE
+        self._q           = queue.SimpleQueue()
+        self._door_closed = True
+        self._door_timer: threading.Timer | None = None
+        self._last_clock: tuple | None = None
 
-        # Start the dispatch thread first so queued work is processed
-        # even if later init steps post to the queue.
-        threading.Thread(
-            target=self._dispatch_loop, name="Dispatch", daemon=True
-        ).start()
+        # Countdown display metadata — set when a countdown starts
+        self._cd_mm = 0   # original minutes entered (for display formatting)
 
+        # Easter egg state
+        self._race_abort = threading.Event()
+
+        threading.Thread(target=self._dispatch, name="Dispatch", daemon=True).start()
+
+        pygame.init()
         self.display   = Display()
         self.playlists = PlaylistManager()
         self.audio     = AudioEngine()
@@ -674,24 +743,20 @@ class MicroRaveApp:
             on_tick   = lambda r: self._post(self._on_tick,   r),
             on_finish = lambda:   self._post(self._on_finish),
         )
-        self.time_buf = TimeEntryBuffer()
+        self.buf = TimeEntryBuffer()
 
-        self._setup_buttons()
-        self._setup_door()
-        self._read_initial_door_state()
+        self._setup_gpio()
+        self._show_clock(force=True)
+        log.info("MicroRave ready — DJ%d selected", self.playlists.selected)
 
-        self.display.set_color(COLOR_WHITE)
-        self.display.show("0:00")
-        log.info("MicroRave ready.  Playlist: %s", self.playlists.current_name)
-
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # Dispatch queue
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def _post(self, fn, *args):
         self._q.put((fn, args))
 
-    def _dispatch_loop(self):
+    def _dispatch(self):
         while True:
             fn, args = self._q.get()
             try:
@@ -699,326 +764,362 @@ class MicroRaveApp:
             except Exception as exc:
                 log.error("Dispatch error in %s: %s", fn.__name__, exc, exc_info=True)
 
-    # ------------------------------------------------------------------
-    # State property (thread-safe read/write)
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # GPIO setup  (lgpio — Pi 5 native)
+    # -------------------------------------------------------------------------
 
-    @property
-    def state(self) -> State:
-        with self._state_lock:
-            return self._state
+    def _setup_gpio(self):
+        self._chip     = lgpio.gpiochip_open(0)
+        self._btn_map: dict[int, callable] = {}
+        self._all_pins: list[int] = []
 
-    @state.setter
-    def state(self, new: State):
-        with self._state_lock:
-            old = self._state
-            self._state = new
-        if old != new:
-            log.info("State: %s → %s", old.name, new.name)
+        def reg(pin: int, fn, *args):
+            lgpio.gpio_claim_input(self._chip, pin, lgpio.SET_PULL_UP)
+            self._btn_map[pin] = lambda f=fn, a=args: self._post(f, *a)
+            self._all_pins.append(pin)
 
-    # ------------------------------------------------------------------
-    # Button / door setup
-    # ------------------------------------------------------------------
+        for dj, pin in PIN_DJ.items():
+            reg(pin, self._on_dj, dj)
 
-    def _setup_buttons(self):
-        bounce = 0.05
+        for digit, pin in PIN_DIGITS.items():
+            reg(pin, self._on_digit, digit)
 
-        if KEYPAD_MODE == "individual":
-            self._num_btns = []
-            for char, pin in KEYPAD_PIN_MAP.items():
-                btn = Button(pin, pull_up=True, bounce_time=bounce)
-                btn.when_pressed = self._make_digit_cb(int(char))
-                self._num_btns.append(btn)
-        else:
-            self._setup_matrix()
+        for pin, fn in [
+            (PIN_START,    self._on_start),
+            (PIN_STOP,     self._on_stop),
+            (PIN_ADD_30,   self._on_add_30),
+            (PIN_VOL_UP,   self._on_vol_up),
+            (PIN_VOL_DOWN, self._on_vol_down),
+        ]:
+            reg(pin, fn)
 
-        def cb(fn):
-            return lambda: self._post(fn)
+        lgpio.gpio_claim_input(self._chip, PIN_DOOR, lgpio.SET_PULL_UP)
+        self._all_pins.append(PIN_DOOR)
 
-        self._btn_start    = Button(PIN_START,         pull_up=True, bounce_time=bounce)
-        self._btn_cancel   = Button(PIN_CANCEL,        pull_up=True, bounce_time=bounce)
-        self._btn_add30    = Button(PIN_ADD_30,        pull_up=True, bounce_time=bounce)
-        self._btn_pl_prev  = Button(PIN_PLAYLIST_PREV, pull_up=True, bounce_time=bounce)
-        self._btn_pl_next  = Button(PIN_PLAYLIST_NEXT, pull_up=True, bounce_time=bounce)
-        self._btn_vol_up   = Button(PIN_VOLUME_UP,     pull_up=True, bounce_time=bounce)
-        self._btn_vol_down = Button(PIN_VOLUME_DOWN,   pull_up=True, bounce_time=bounce)
+        self._pin_prev = {p: lgpio.gpio_read(self._chip, p) for p in self._all_pins}
+        self._pin_dbnc = {p: 0.0 for p in self._all_pins}
 
-        self._btn_start.when_pressed    = cb(self._on_start)
-        self._btn_cancel.when_pressed   = cb(self._on_cancel)
-        self._btn_add30.when_pressed    = cb(self._on_add_30)
-        self._btn_pl_prev.when_pressed  = cb(self._on_playlist_prev)
-        self._btn_pl_next.when_pressed  = cb(self._on_playlist_next)
-        self._btn_vol_up.when_pressed   = cb(self._on_volume_up)
-        self._btn_vol_down.when_pressed = cb(self._on_volume_down)
+        self._door_closed = self._pin_prev[PIN_DOOR] == 0
+        self._gpio_stop = threading.Event()
+        log.info("GPIO ready (polling @%dHz) — door: %s",
+                 GPIO_POLL_HZ, "closed" if self._door_closed else "open")
 
-        log.info("Buttons configured (%s mode).", KEYPAD_MODE)
+        threading.Thread(target=self._poll_gpio, name="GPIOPoll", daemon=True).start()
 
-    def _setup_matrix(self):
-        self._mx_rows = [OutputDevice(p, initial_value=True) for p in MATRIX_ROW_PINS]
-        self._mx_cols = [Button(p, pull_up=True) for p in MATRIX_COL_PINS]
-        self._mx_last = None
-        threading.Thread(
-            target=self._matrix_scan, name="MatrixScan", daemon=True
-        ).start()
+    def _poll_gpio(self):
+        interval = 1.0 / GPIO_POLL_HZ
+        while not self._gpio_stop.is_set():
+            now = time.monotonic()
+            for pin in self._all_pins:
+                level = lgpio.gpio_read(self._chip, pin)
+                if level == self._pin_prev[pin]:
+                    continue
+                if now - self._pin_dbnc[pin] < DEBOUNCE_S:
+                    continue
+                self._pin_dbnc[pin] = now
+                self._pin_prev[pin] = level
 
-    def _matrix_scan(self):
-        while True:
-            try:
-                pressed = None
-                for r_i, row in enumerate(self._mx_rows):
-                    row.off()
-                    time.sleep(0.001)
-                    for c_i, col in enumerate(self._mx_cols):
-                        if not col.is_pressed:
-                            pressed = MATRIX_LAYOUT[r_i][c_i]
-                    row.on()
-                if pressed != self._mx_last:
-                    if pressed and pressed.isdigit():
-                        self._post(self._on_digit, int(pressed))
-                    self._mx_last = pressed
-                time.sleep(0.02)
-            except Exception as exc:
-                log.error("Matrix scan error: %s — retrying.", exc)
-                self._mx_last = None
-                time.sleep(1)
+                if pin == PIN_DOOR:
+                    if level == 0:
+                        self._post(self._on_door_close)
+                    else:
+                        self._post(self._on_door_open)
+                elif level == 0:
+                    handler = self._btn_map.get(pin)
+                    if handler:
+                        handler()
 
-    def _setup_door(self):
-        self._door = Button(PIN_DOOR, pull_up=True, bounce_time=0.15)
-        if DOOR_CLOSED_STATE:
-            self._door.when_pressed  = lambda: self._post(self._on_door_close)
-            self._door.when_released = lambda: self._post(self._on_door_open)
-        else:
-            self._door.when_pressed  = lambda: self._post(self._on_door_open)
-            self._door.when_released = lambda: self._post(self._on_door_close)
-        log.info("Door switch on GPIO %d (closed_state=%s).", PIN_DOOR, DOOR_CLOSED_STATE)
+            time.sleep(interval)
 
-    def _read_initial_door_state(self):
-        self._door_is_closed = (self._door.is_pressed == DOOR_CLOSED_STATE)
-        log.info("Door at boot: %s.", "closed" if self._door_is_closed else "open")
+    # -------------------------------------------------------------------------
+    # Event handlers  (all run on the dispatch thread)
+    # -------------------------------------------------------------------------
 
-    def _make_digit_cb(self, digit: int):
-        return lambda: self._post(self._on_digit, digit)
-
-    # ------------------------------------------------------------------
-    # Event handlers  (all called on the dispatch thread)
-    # ------------------------------------------------------------------
+    def _on_dj(self, dj: int):
+        log.info("Button: DJ%d", dj)
+        self.audio.beep()
+        self.playlists.select(dj)
+        if self._state in (State.IDLE, State.ENTERING_TIME):
+            self.display.show(f"dJ {dj}", colon=False)
+            t = threading.Timer(1.5, lambda: self._post(self._restore_display))
+            t.daemon = True
+            t.start()
 
     def _on_digit(self, digit: int):
+        log.info("Button: %d", digit)
         self.audio.beep()
-        if self.state in (State.IDLE, State.ENTERING_TIME):
-            self.time_buf.push(digit)
-            self.state = State.ENTERING_TIME
-            self.display.set_color(COLOR_CYAN)
-            self.display.show(self.time_buf.to_display_string())
-        elif self.state == State.COUNTING_DOWN:
-            self.timer.add_seconds(digit)
-            self._refresh_display()
+        if self._state in (State.IDLE, State.ENTERING_TIME):
+            self.buf.push(digit)
+            self._state = State.ENTERING_TIME
+            self.display.show(self.buf.display_str())
+        elif self._state == State.COUNTING_DOWN:
+            self.timer.add(digit)
 
     def _on_start(self):
+        log.info("Button: START")
         self.audio.beep()
-        if self.state == State.ENTERING_TIME:
-            if not self.time_buf.is_zero():
-                if self._door_is_closed:
-                    self._begin_countdown()
-                else:
-                    # Time is set but door is open — arm and wait for door close.
-                    # Display goes amber to signal "ready, door open".
-                    log.info("START pressed but door is open — armed, waiting for door close.")
-                    self.display.set_color(COLOR_AMBER)
-                    self.display.show(self.time_buf.to_display_string())
-        elif self.state == State.PAUSED:
+        if self._state == State.ENTERING_TIME and not self.buf.is_zero():
+            self._begin_countdown()
+        elif self._state == State.PAUSED:
             self._resume_countdown()
 
-    def _on_cancel(self):
+    def _on_stop(self):
+        log.info("Button: STOP")
         self.audio.beep()
-        log.info("Cancel.")
+        self._race_abort.set()   # cancel any running easter egg animation
         self._cancel_door_timer()
         self.timer.stop()
         self.audio.stop()
-        self.time_buf.clear()
-        self.state = State.IDLE
-        self.display.set_color(COLOR_WHITE)
-        self.display.show("0:00")
+        self.buf.clear()
+        self._state = State.ENTERING_TIME
+        self.display.show("0000")
+        log.info("Cleared — ready for input.")
 
     def _on_add_30(self):
+        log.info("Button: +30s")
         self.audio.beep()
-        if self.state == State.ENTERING_TIME:
-            self.time_buf.push(3)
-            self.time_buf.push(0)
-            self.display.show(self.time_buf.to_display_string())
-        elif self.state in (State.COUNTING_DOWN, State.PAUSED):
-            self.timer.add_seconds(30)
-            self._refresh_display()
+        if self._state in (State.IDLE, State.ENTERING_TIME):
+            self.buf.push(3)
+            self.buf.push(0)
+            self._state = State.ENTERING_TIME
+            self.display.show(self.buf.display_str())
+            self._begin_countdown()
+        elif self._state in (State.COUNTING_DOWN, State.PAUSED):
+            self.timer.add(30)
 
-    def _on_playlist_prev(self):
-        self.audio.beep()
-        if self.state in (State.IDLE, State.ENTERING_TIME):
-            self.playlists.prev()
-            self._flash_playlist_name()
-
-    def _on_playlist_next(self):
-        self.audio.beep()
-        if self.state in (State.IDLE, State.ENTERING_TIME):
-            self.playlists.next()
-            self._flash_playlist_name()
-
-    def _on_volume_up(self):
+    def _on_vol_up(self):
+        log.info("Button: VOL UP")
         self.audio.beep()
         self.audio.volume_up()
 
-    def _on_volume_down(self):
+    def _on_vol_down(self):
+        log.info("Button: VOL DOWN")
         self.audio.beep()
         self.audio.volume_down()
 
     def _on_door_close(self):
-        log.info("Door closed.")
-        self._door_is_closed = True
+        log.info("Door: CLOSED")
+        self._door_closed = True
         self._cancel_door_timer()
-        if self.state == State.ENTERING_TIME and not self.time_buf.is_zero():
+        if self._state == State.ENTERING_TIME and not self.buf.is_zero():
             self._begin_countdown()
-        elif self.state == State.PAUSED:
+        elif self._state == State.PAUSED:
             self._resume_countdown()
 
     def _on_door_open(self):
-        log.info("Door opened.")
-        self._door_is_closed = False
-        if self.state == State.COUNTING_DOWN:
+        log.info("Door: OPEN")
+        self._door_closed = False
+        if self._state == State.COUNTING_DOWN:
             self._pause_countdown()
             if DOOR_OPEN_TIMEOUT > 0:
                 self._door_timer = threading.Timer(
-                    DOOR_OPEN_TIMEOUT,
-                    lambda: self._post(self._on_cancel),
+                    DOOR_OPEN_TIMEOUT, lambda: self._post(self._on_stop)
                 )
                 self._door_timer.daemon = True
                 self._door_timer.start()
                 log.info("Door timeout: auto-cancel in %ds.", DOOR_OPEN_TIMEOUT)
 
     def _on_tick(self, remaining: int):
-        if self.state == State.COUNTING_DOWN:
-            self._refresh_display()
+        if self._state == State.COUNTING_DOWN:
+            self.display.show(self._fmt_countdown(remaining))
 
     def _on_finish(self):
         log.info("Countdown finished!")
         self._cancel_door_timer()
-        self.state = State.FINISHED
-        self.time_buf.clear()
-        self.display.set_color(COLOR_GREEN)
-        self.display.show("0:00")
-        self.audio.play_finish_sound()
+        self._state = State.FINISHED
+        self.buf.clear()
+        self.audio.ding()
+        self.display.show("0000")
         t = threading.Timer(3.0, lambda: self._post(self._go_idle))
         t.daemon = True
         t.start()
 
     def _go_idle(self):
-        if self.state == State.FINISHED:
-            self.state = State.IDLE
-            self.display.set_color(COLOR_WHITE)
-            self.display.show("0:00")
-            log.info("Back to idle.")
+        if self._state == State.FINISHED:
+            self._state = State.IDLE
+            self._show_clock(force=True)
 
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Easter egg handlers
+    # -------------------------------------------------------------------------
+
+    def _begin_easter_egg(self, egg: dict, tracks: list):
+        log.info("Easter egg! '%s' — %ds countdown", egg['folder'], egg['seconds'])
+        self._state  = State.COUNTING_DOWN
+        self._cd_mm  = egg['mm']
+        self._race_abort.clear()
+
+        entry_display = self.buf.display_str()  # capture typed digits before buffer clears
+        track = random.choice(tracks)
+        self.audio.start_easter(
+            track,
+            on_complete=lambda: self._post(self._on_easter_egg_audio_done)
+        )
+
+        egg_secs = egg['seconds']
+
+        def _run_animation():
+            # Flash the entered number 3 times
+            for _ in range(3):
+                if self._race_abort.is_set():
+                    return
+                self.display.show(entry_display)
+                time.sleep(0.9)
+                if self._race_abort.is_set():
+                    return
+                self.display.show("    ", colon=False)
+                time.sleep(0.43)
+
+            # Race-around animation
+            _race_animation(self.display, self._race_abort)
+
+            if not self._race_abort.is_set():
+                self._post(self._on_easter_egg_countdown, egg_secs)
+
+        threading.Thread(target=_run_animation, name="EggAnim", daemon=True).start()
+
+    def _on_easter_egg_countdown(self, secs: int):
+        """Called after race animation — starts the actual timer."""
+        if self._state != State.COUNTING_DOWN:
+            return
+        self.display.show(self._fmt_countdown(secs))
+        self.timer.start(secs)
+
+    def _on_easter_egg_audio_done(self):
+        """Easter egg clip finished playing — if timer still running, force finish."""
+        if self._state == State.COUNTING_DOWN:
+            log.info("Easter egg audio ended — forcing timer to zero.")
+            self.timer.stop()
+            self._post(self._on_finish)
+
+    # -------------------------------------------------------------------------
     # Helpers
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+    def _fmt_countdown(self, remaining: int) -> str:
+        """
+        Format remaining seconds for display.
+        Preserves the original minutes digit so that e.g. 0:69 shows as '0069'
+        and 6:66 shows as '0666' through the initial part of its countdown.
+        Once remaining drops below mm*60 the display normalizes naturally.
+        """
+        if remaining > self._cd_mm * 60:
+            return "%02d%02d" % (self._cd_mm, remaining - self._cd_mm * 60)
+        m, s = divmod(remaining, 60)
+        return "%02d%02d" % (min(m, 99), s)
 
     def _begin_countdown(self):
-        seconds = self.time_buf.to_seconds()
-        if seconds == 0:
-            log.warning("begin_countdown called with 0 seconds — ignored.")
+        if not self._door_closed:
+            log.info("Start pressed with door open — armed, waiting for door close.")
             return
-        if not self._door_is_closed:
-            # Door is open — can't start, like a real microwave.
-            # Stay in ENTERING_TIME so the door-close handler can launch us.
-            log.info("begin_countdown: door is open — armed, waiting for door close.")
-            self.display.set_color(COLOR_AMBER)
-            self.display.show(self.time_buf.to_display_string())
+        secs = self.buf.to_seconds()
+        if secs == 0:
             return
-        log.info("Countdown: %ds | Playlist: %s", seconds, self.playlists.current_name)
-        self.state = State.COUNTING_DOWN
-        self.display.set_color(COLOR_WHITE)
+
+        # Check for easter egg
+        typed = self.buf.typed_str()
+        egg   = EASTER_EGGS.get(typed)
+        if egg:
+            tracks = self.playlists.easter_tracks(typed)
+            if tracks:
+                self._begin_easter_egg(egg, tracks)
+                return
+            # Folder missing or empty — fall through to normal countdown
+
+        # Normal countdown
+        self._cd_mm = self.buf.raw_mm()
+        log.info("Countdown: %ds (display %02d:%02d), DJ%d",
+                 secs, self._cd_mm, self.buf.raw_ss(), self.playlists.selected)
+        self._state = State.COUNTING_DOWN
         self.audio.start(self.playlists.shuffled_tracks())
-        self.timer.start(seconds)
+        self.timer.start(secs)
 
     def _pause_countdown(self):
-        self.state = State.PAUSED
+        self._state = State.PAUSED
         self.timer.pause()
         self.audio.pause()
-        self.display.set_color(COLOR_AMBER)
-        self._refresh_display()
+        log.info("Paused.")
 
     def _resume_countdown(self):
-        self.state = State.COUNTING_DOWN
-        self.display.set_color(COLOR_WHITE)
-        self._refresh_display()
+        self._state = State.COUNTING_DOWN
         self.timer.resume()
         self.audio.resume()
+        log.info("Resumed.")
 
-    def _refresh_display(self):
-        r = self.timer.remaining
-        self.display.show("%02d:%02d" % (min(r // 60, 99), r % 60))
+    def _show_clock(self, force: bool = False):
+        now = datetime.now()
+        h   = now.hour % 12 or 12
+        m   = now.minute
+        if not force and (h, m) == self._last_clock:
+            return
+        self._last_clock = (h, m)
+        self.display.show("%2d%02d" % (h, m))
+
+    def _restore_display(self):
+        if self._state == State.ENTERING_TIME:
+            self.display.show(self.buf.display_str())
+        elif self._state == State.IDLE:
+            self._show_clock(force=True)
 
     def _cancel_door_timer(self):
         if self._door_timer:
             self._door_timer.cancel()
             self._door_timer = None
 
-    def _flash_playlist_name(self):
-        """Briefly show the playlist name on the display then restore."""
-        name = self.playlists.current_name[:4].upper().ljust(4)
-        self.display.set_color(COLOR_CYAN)
-        self.display.show(name)
-        t = threading.Timer(1.5, lambda: self._post(self._restore_display))
-        t.daemon = True
-        t.start()
-
-    def _restore_display(self):
-        if self.state == State.ENTERING_TIME:
-            self.display.set_color(COLOR_CYAN)
-            self.display.show(self.time_buf.to_display_string())
-        elif self.state == State.IDLE:
-            self.display.set_color(COLOR_WHITE)
-            self.display.show("0:00")
-
-    # ------------------------------------------------------------------
-    # Main loop
-    # ------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Main loop  (runs on main thread — owns pygame event pump and rendering)
+    # -------------------------------------------------------------------------
 
     def run(self):
-        log.info("Running.  Press Ctrl+C to quit.")
+        log.info("Running — Ctrl+C or Esc to quit.")
         try:
             while True:
-                time.sleep(0.5)
+                for ev in pygame.event.get([pygame.QUIT, pygame.KEYDOWN]):
+                    if ev.type == pygame.QUIT:
+                        return
+                    if ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
+                        return
+
+                if self._state == State.IDLE:
+                    self._show_clock()
+
+                self.display.render()
+                time.sleep(0.05)   # 20 fps — smooth enough for animation
+
         except KeyboardInterrupt:
-            log.info("Shutting down…")
+            pass
         finally:
-            self._cancel_door_timer()
-            self.timer.stop()
-            self.audio.stop()
-            self.display.clear()
-            log.info("Goodbye.")
+            self._shutdown()
+
+    def _shutdown(self):
+        log.info("Shutting down…")
+        self._race_abort.set()
+        self._cancel_door_timer()
+        self.timer.stop()
+        self.audio.stop()
+        self._gpio_stop.set()        # signal poll thread to exit
+        time.sleep(0.1)              # let it finish its current iteration
+        try:
+            lgpio.gpiochip_close(self._chip)
+        except Exception:
+            pass
+        pygame.quit()
+        log.info("Goodbye.")
 
 
 # =============================================================================
 # STARTUP VALIDATION
 # =============================================================================
 
-def validate_environment() -> bool:
+def check_env() -> bool:
     ok = True
-    for path, label in [(BEEP_SOUND, "beep"), (FINISH_SOUND, "finish")]:
+    for path, label in [(BEEP_SOUND, "beep"), (DING_SOUND, "ding")]:
         if not os.path.isfile(path):
-            log.error("Missing %s sound: '%s'", label, path)
+            log.error("Missing %s sound: %s", label, path)
             ok = False
     if not os.path.isdir(MUSIC_ROOT):
-        log.error("Music root not found: '%s'", MUSIC_ROOT)
+        log.error("Music root not found: %s", MUSIC_ROOT)
         ok = False
-    else:
-        exts = (".mp3", ".wav", ".ogg", ".flac", ".m4a")
-        has_music = any(
-            any(f.lower().endswith(exts) for f in os.listdir(e.path))
-            for e in os.scandir(MUSIC_ROOT) if e.is_dir()
-        )
-        if not has_music:
-            log.error("No audio files found under '%s'.", MUSIC_ROOT)
-            ok = False
     return ok
 
 
@@ -1027,12 +1128,12 @@ def validate_environment() -> bool:
 # =============================================================================
 
 if __name__ == "__main__":
-    if not validate_environment():
+    if not check_env():
         log.critical("Environment check failed — fix errors above and restart.")
         raise SystemExit(1)
     try:
         app = MicroRaveApp()
         app.run()
     except Exception as exc:
-        log.critical("Fatal error: %s", exc, exc_info=True)
+        log.critical("Fatal: %s", exc, exc_info=True)
         raise SystemExit(1)
