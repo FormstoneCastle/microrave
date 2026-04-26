@@ -1,5 +1,5 @@
 """
-MicroRave Music Player  —  v3.1
+MicroRave Music Player  —  v3.2
 ================================
 Microwave-shell music player on Raspberry Pi 5.
 
@@ -393,6 +393,7 @@ class AudioEngine:
         self._done    = threading.Event()
         self._egg_complete_cb = None  # set during easter egg play
         self._counts  = self._load_counts()
+        self._save_counter = 0
 
         for driver in ("pipewire", "pulseaudio", "alsa", "dummy"):
             os.environ["SDL_AUDIODRIVER"] = driver
@@ -530,7 +531,10 @@ class AudioEngine:
     def _play(self, path: str):
         key = os.path.basename(path)
         self._counts[key] = self._counts.get(key, 0) + 1
-        self._save_counts()
+        self._save_counter += 1
+        if self._save_counter >= 5:
+            self._save_counts()
+            self._save_counter = 0
         try:
             pygame.mixer.music.load(path)
             pygame.mixer.music.set_volume(self._volume / 100)
@@ -571,6 +575,10 @@ class AudioEngine:
                 egg_cb()
             elif nxt:
                 self._play(nxt)
+
+    def shutdown(self):
+        """Flush any unsaved play counts — called by app on exit."""
+        self._save_counts()
 
     def _apply_volume(self):
         if self._ok:
@@ -704,9 +712,14 @@ class TimeEntryBuffer:
 class State(Enum):
     IDLE          = auto()
     ENTERING_TIME = auto()
+    ANIMATING     = auto()   # easter egg flash + race animation running
     COUNTING_DOWN = auto()
     PAUSED        = auto()
     FINISHED      = auto()
+
+
+# Sentinel posted to the dispatch queue to signal a clean shutdown
+_STOP_SENTINEL = object()
 
 
 # =============================================================================
@@ -733,7 +746,8 @@ class MicroRaveApp:
         # Easter egg state
         self._race_abort = threading.Event()
 
-        threading.Thread(target=self._dispatch, name="Dispatch", daemon=True).start()
+        self._dispatch_thread = threading.Thread(target=self._dispatch, name="Dispatch", daemon=True)
+        self._dispatch_thread.start()
 
         pygame.init()
         self.display   = Display()
@@ -758,11 +772,20 @@ class MicroRaveApp:
 
     def _dispatch(self):
         while True:
-            fn, args = self._q.get()
+            item = self._q.get()
+            if item is _STOP_SENTINEL:
+                break
+            fn, args = item
             try:
                 fn(*args)
             except Exception as exc:
                 log.error("Dispatch error in %s: %s", fn.__name__, exc, exc_info=True)
+
+    def _drain(self, timeout: float = 1.0) -> bool:
+        """Block until all currently-queued dispatch items are processed. Used in tests."""
+        done = threading.Event()
+        self._q.put((done.set, ()))
+        return done.wait(timeout=timeout)
 
     # -------------------------------------------------------------------------
     # GPIO setup  (lgpio — Pi 5 native)
@@ -909,7 +932,14 @@ class MicroRaveApp:
     def _on_door_open(self):
         log.info("Door: OPEN")
         self._door_closed = False
-        if self._state == State.COUNTING_DOWN:
+        if self._state == State.ANIMATING:
+            # Timer hasn't started yet — abort animation and return to entry mode
+            self._race_abort.set()
+            self.audio.stop()
+            self.buf.clear()
+            self._state = State.ENTERING_TIME
+            self.display.show("0000")
+        elif self._state == State.COUNTING_DOWN:
             self._pause_countdown()
             if DOOR_OPEN_TIMEOUT > 0:
                 self._door_timer = threading.Timer(
@@ -945,7 +975,7 @@ class MicroRaveApp:
 
     def _begin_easter_egg(self, egg: dict, tracks: list):
         log.info("Easter egg! '%s' — %ds countdown", egg['folder'], egg['seconds'])
-        self._state  = State.COUNTING_DOWN
+        self._state  = State.ANIMATING
         self._cd_mm  = egg['mm']
         self._race_abort.clear()
 
@@ -980,8 +1010,9 @@ class MicroRaveApp:
 
     def _on_easter_egg_countdown(self, secs: int):
         """Called after race animation — starts the actual timer."""
-        if self._state != State.COUNTING_DOWN:
+        if self._state != State.ANIMATING:
             return
+        self._state = State.COUNTING_DOWN
         self.display.show(self._fmt_countdown(secs))
         self.timer.start(secs)
 
@@ -1097,8 +1128,10 @@ class MicroRaveApp:
         self._cancel_door_timer()
         self.timer.stop()
         self.audio.stop()
+        self.audio.shutdown()        # flush unsaved play counts
         self._gpio_stop.set()        # signal poll thread to exit
         time.sleep(0.1)              # let it finish its current iteration
+        self._q.put(_STOP_SENTINEL)  # drain dispatch thread cleanly
         try:
             lgpio.gpiochip_close(self._chip)
         except Exception:
