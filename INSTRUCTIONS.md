@@ -106,6 +106,49 @@ Supported formats: `.mp3  .wav  .ogg  .flac  .m4a`
 - **Display** — HDMI fullscreen 7-segment clock, green on black
 - **Audio** — HDMI → TV speakers
 - **20 switches** wired (SPDT, NO→GPIO, internal pull-up)
+- **Arduino UNO** — USB to Pi, controls DJ indicator lights via relay board
+
+---
+
+## Arduino → Relay Board Wiring
+
+**Connection:** Arduino USB-B → Pi USB-A (`/dev/ttyACM0`, 9600 baud)
+
+### Control Side (low voltage, safe)
+
+| Arduino Pin | Relay Board Pin | Purpose |
+|-------------|-----------------|---------|
+| 5V          | VCC             | Power   |
+| GND         | GND             | Ground  |
+| D2          | IN1             | DJ1 light |
+| D3          | IN2             | DJ2 light |
+| D4          | IN3             | DJ3 light |
+| D5          | IN4             | DJ4 light |
+| D6          | IN5             | DJ5 light |
+| D7          | IN6             | DJ6 light |
+| D8          | IN7             | spare   |
+| D9          | IN8             | spare   |
+
+### Load Side (120V AC — use caution)
+
+Each relay channel switches the **hot wire only** to a lamp socket:
+
+```
+AC plug hot (black)  → Relay IN terminal → Relay OUT terminal → Socket hot
+AC plug neutral (white) ──────────────────────────────────────→ Socket neutral
+AC plug ground (green)  ──────────────────────────────────────→ Socket ground
+```
+
+- Relay board: SainSmart 8-channel SSR (active HIGH, 2.5–20V trigger)
+- Load rating: 0.1–2A per channel at 75–264V AC
+- All AC connections must be inside an enclosure
+
+### Serial Commands (for manual testing)
+
+| Command | Effect |
+|---------|--------|
+| `DJ:1` – `DJ:6` | Activate that DJ's relay, deactivate all others |
+| `OFF`   | Deactivate all relays |
 
 ---
 

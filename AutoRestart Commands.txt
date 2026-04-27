@@ -1,0 +1,13 @@
+That means the service file has Restart=always (or similar), which overrides systemctl stop. Check what's in   
+  it:                                             
+                                                                                                                 
+  systemctl cat microrave
+                                                                                                                 
+  Paste the output and I'll confirm. But to keep it stopped for now, mask it temporarily — masking prevents any
+  restart:                               
+
+  sudo systemctl stop microrave && sudo systemctl mask microrave
+
+  When you're done and want it back:
+
+  sudo systemctl unmask microrave && sudo systemctl start microrave

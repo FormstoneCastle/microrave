@@ -21,6 +21,8 @@ Optional dependency (memory monitoring):
 """
 import sys
 import os
+import signal
+import subprocess
 import time
 import random
 import threading
@@ -33,7 +35,10 @@ from unittest.mock import MagicMock
 _lgpio = MagicMock()
 _lgpio.SET_PULL_UP = 0
 _lgpio.gpiochip_open.return_value = 99
-_lgpio.gpio_read.return_value = 1
+# Plain function — NOT a MagicMock — so it doesn't record 1,100 calls/sec into
+# call_args_list.  MagicMock memory grows to GB-scale after ~1 hour and causes
+# OS swap pressure, which manifests as multi-second stalls on the dispatch thread.
+_lgpio.gpio_read = lambda chip, pin: 1
 
 _pygame = MagicMock()
 _pygame.FULLSCREEN = 1; _pygame.NOFRAME = 0
@@ -47,6 +52,17 @@ _pygame.mixer.Channel.return_value = MagicMock()
 _pygame.mixer.Sound.return_value = MagicMock()
 sys.modules['lgpio']  = _lgpio
 sys.modules['pygame'] = _pygame
+
+# Kill any previously frozen soak_test instance, excluding this process.
+_my_pid = os.getpid()
+_pgrep = subprocess.run(["pgrep", "-f", "soak_test.py"], capture_output=True, text=True)
+for _pid_str in _pgrep.stdout.split():
+    try:
+        _pid = int(_pid_str)
+        if _pid != _my_pid:
+            os.kill(_pid, signal.SIGTERM)
+    except (ValueError, ProcessLookupError):
+        pass
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from microrave import MicroRaveApp, State  # noqa: E402

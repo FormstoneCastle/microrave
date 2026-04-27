@@ -34,10 +34,17 @@ import logging
 import os
 import queue
 import random
+import subprocess
 import threading
 import time
 from datetime import datetime
 from enum import Enum, auto
+
+try:
+    import serial as _serial
+    _SERIAL_AVAILABLE = True
+except ImportError:
+    _SERIAL_AVAILABLE = False
 
 import lgpio
 import pygame
@@ -46,14 +53,37 @@ import pygame
 # LOGGING
 # =============================================================================
 
+_temp_cache: dict = {"val": "?°C", "ts": 0.0}
+
+def _read_temp() -> str:
+    now = time.monotonic()
+    if now - _temp_cache["ts"] >= 30.0:
+        try:
+            out = subprocess.check_output(["vcgencmd", "measure_temp"], text=True)
+            # "temp=52.3'C" → "52.3°C"
+            _temp_cache["val"] = out.strip().replace("temp=", "").replace("'C", "°C")
+        except Exception:
+            _temp_cache["val"] = "?°C"
+        _temp_cache["ts"] = now
+    return _temp_cache["val"]
+
+class _TempFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.temp = _read_temp()
+        return True
+
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    format="%(asctime)s [%(levelname)s] %(name)s [%(temp)s]: %(message)s",
     handlers=[
         logging.StreamHandler(),
         logging.FileHandler("microrave.log"),
     ],
 )
+_temp_filter = _TempFilter()
+for _h in logging.getLogger().handlers:
+    _h.addFilter(_temp_filter)
+
 log = logging.getLogger("MicroRave")
 
 # =============================================================================
@@ -87,6 +117,9 @@ PIN_DOOR = 25
 # SETTINGS
 # =============================================================================
 
+RELAY_PORT        = "/dev/ttyACM0"  # Arduino USB serial port
+RELAY_BAUD        = 9600
+
 MUSIC_ROOT        = "music"
 SOUNDS_DIR        = "sounds"
 PLAYCOUNTS_FILE   = "playcounts.json"
@@ -95,9 +128,16 @@ BEEP_SOUND        = os.path.join(SOUNDS_DIR, "beep.mp3")
 DING_SOUND        = os.path.join(SOUNDS_DIR, "ding.mp3")
 VOLUME_DEFAULT    = 70    # 0–100
 VOLUME_STEP       = 5
-DOOR_OPEN_TIMEOUT = 300   # seconds before auto-cancel when door left open; 0 = disabled
+DOOR_OPEN_TIMEOUT   = 60    # seconds before auto-cancel when door left open; 0 = disabled
+ENTRY_IDLE_TIMEOUT  = 60    # seconds on 0000 screen with no input before returning to clock
 DEBOUNCE_S        = 0.05  # seconds to ignore re-triggers after a switch edge
 GPIO_POLL_HZ      = 50    # GPIO polling rate
+
+# DJ race animation (runs after each session to pick a random DJ)
+RANDOM_DJ_ON_FINISH = True   # set False to disable random DJ selection
+DJ_RACE_SEQUENCE    = [1, 2, 3, 6, 5, 4]  # clockwise around the 2×3 light grid
+DJ_RACE_LAPS        = 3      # full laps before landing
+DJ_RACE_STEP_S      = 0.12   # seconds per step
 
 # Easter egg trigger map
 # key = digit string as typed; seconds/mm/ss define the countdown
@@ -419,7 +459,6 @@ class AudioEngine:
         self._ding_snd = self._load(DING_SOUND, "ding")
         self._apply_volume()
 
-        threading.Thread(target=self._event_pump,    name="AudioPump",    daemon=True).start()
         threading.Thread(target=self._track_manager, name="TrackManager", daemon=True).start()
         log.info("Audio ready (volume=%d%%)", self._volume)
 
@@ -544,14 +583,9 @@ class AudioEngine:
             log.error("Cannot play '%s': %s — skipping", path, exc)
             self._done.set()
 
-    def _event_pump(self):
-        while True:
-            try:
-                if pygame.event.get(self._MUSIC_END):
-                    self._done.set()
-            except Exception:
-                return
-            time.sleep(0.1)
+    def notify_music_end(self):
+        """Signal that the current track ended. Called from the main thread's event loop."""
+        self._done.set()
 
     def _track_manager(self):
         """Advance playlist on track end; fire callback for easter egg clips."""
@@ -671,18 +705,21 @@ class TimeEntryBuffer:
     _MAX = 99 * 60 + 59
 
     def __init__(self):
-        self._d     = [0, 0, 0, 0]
+        self._d         = [0, 0, 0, 0]
         self._typed: list[int] = []   # digits as actually pressed (up to 4)
+        self._from_add30 = False      # True when buffer was last set by +30 (not manual digits)
 
     def push(self, digit: int):
         c = self._d[1:] + [digit]
         if (c[0] * 10 + c[1]) * 60 + (c[2] * 10 + c[3]) <= self._MAX:
-            self._d     = c
-            self._typed = (self._typed + [digit])[-4:]
+            self._d          = c
+            self._typed      = (self._typed + [digit])[-4:]
+            self._from_add30 = False
 
     def clear(self):
-        self._d     = [0, 0, 0, 0]
-        self._typed = []
+        self._d          = [0, 0, 0, 0]
+        self._typed      = []
+        self._from_add30 = False
 
     def to_seconds(self) -> int:
         return (self._d[0] * 10 + self._d[1]) * 60 + (self._d[2] * 10 + self._d[3])
@@ -699,6 +736,14 @@ class TimeEntryBuffer:
     def typed_str(self) -> str:
         """Digits as actually pressed — used for easter egg matching."""
         return ''.join(str(d) for d in self._typed)
+
+    def set_from_seconds(self, secs: int):
+        """Overwrite buffer from a seconds value — used by +30 when already armed."""
+        secs = max(0, min(secs, self._MAX))
+        m, s = divmod(secs, 60)
+        self._d          = [m // 10, m % 10, s // 10, s % 10]
+        self._typed      = []
+        self._from_add30 = True
 
     def display_str(self) -> str:
         """4-char string for the display (raw digits, no normalization)."""
@@ -723,6 +768,55 @@ _STOP_SENTINEL = object()
 
 
 # =============================================================================
+# RELAY CONTROLLER  (Arduino via USB serial)
+# =============================================================================
+
+class RelayController:
+    """Sends DJ selection commands to the Arduino relay board over USB serial.
+    Gracefully disabled if Arduino is not connected."""
+
+    def __init__(self, port: str = RELAY_PORT, baud: int = RELAY_BAUD):
+        self._lock = threading.Lock()
+        self._ser  = None
+        if not _SERIAL_AVAILABLE:
+            log.warning("pyserial not installed — relay controller disabled.")
+            return
+        try:
+            self._ser = _serial.Serial(port, baud, timeout=1)
+            time.sleep(2)          # wait for Arduino to reset after USB connect
+            self._ser.reset_input_buffer()
+            log.info("Relay controller ready on %s", port)
+        except Exception as exc:
+            log.warning("Relay controller not available (%s): %s", port, exc)
+
+    def set_dj(self, dj: int) -> None:
+        self._send(f"DJ:{dj}")
+
+    def all_off(self) -> None:
+        self._send("OFF")
+
+    def close(self) -> None:
+        with self._lock:
+            if self._ser and self._ser.is_open:
+                try:
+                    self._ser.write(b"OFF\n")
+                    self._ser.flush()
+                    self._ser.close()
+                except Exception:
+                    pass
+
+    def _send(self, cmd: str) -> None:
+        with self._lock:
+            if not self._ser or not self._ser.is_open:
+                return
+            try:
+                self._ser.write(f"{cmd}\n".encode())
+                self._ser.flush()
+            except Exception as exc:
+                log.warning("Relay send error: %s", exc)
+
+
+# =============================================================================
 # APPLICATION
 # =============================================================================
 
@@ -737,14 +831,18 @@ class MicroRaveApp:
         self._state       = State.IDLE
         self._q           = queue.SimpleQueue()
         self._door_closed = True
-        self._door_timer: threading.Timer | None = None
+        self._door_timer:  threading.Timer | None = None
+        self._entry_timer: threading.Timer | None = None
         self._last_clock: tuple | None = None
 
         # Countdown display metadata — set when a countdown starts
         self._cd_mm = 0   # original minutes entered (for display formatting)
 
         # Easter egg state
-        self._race_abort = threading.Event()
+        self._race_abort    = threading.Event()
+
+        # DJ race state
+        self._dj_race_abort = threading.Event()
 
         self._dispatch_thread = threading.Thread(target=self._dispatch, name="Dispatch", daemon=True)
         self._dispatch_thread.start()
@@ -759,7 +857,9 @@ class MicroRaveApp:
         )
         self.buf = TimeEntryBuffer()
 
+        self.relays = RelayController()
         self._setup_gpio()
+        self.relays.set_dj(self.playlists.selected)  # light up default DJ on startup
         self._show_clock(force=True)
         log.info("MicroRave ready — DJ%d selected", self.playlists.selected)
 
@@ -860,8 +960,12 @@ class MicroRaveApp:
 
     def _on_dj(self, dj: int):
         log.info("Button: DJ%d", dj)
+        self._dj_race_abort.set()  # cancel any running DJ race animation
         self.audio.beep()
         self.playlists.select(dj)
+        # Light follows the playing DJ — only move it when no session is in progress
+        if self._state not in (State.COUNTING_DOWN, State.PAUSED):
+            self.relays.set_dj(dj)
         if self._state in (State.IDLE, State.ENTERING_TIME):
             self.display.show(f"dJ {dj}", colon=False)
             t = threading.Timer(1.5, lambda: self._post(self._restore_display))
@@ -872,9 +976,16 @@ class MicroRaveApp:
         log.info("Button: %d", digit)
         self.audio.beep()
         if self._state in (State.IDLE, State.ENTERING_TIME):
-            self.buf.push(digit)
+            was_idle = self._state == State.IDLE
+            if self.buf._from_add30:
+                # Buffer was set by +30 — add digit as seconds (not digit-shift)
+                self.buf.set_from_seconds(self.buf.to_seconds() + digit)
+            else:
+                self.buf.push(digit)
             self._state = State.ENTERING_TIME
             self.display.show(self.buf.display_str())
+            if was_idle:
+                self._start_entry_timer()
         elif self._state == State.COUNTING_DOWN:
             self.timer.add(digit)
 
@@ -897,13 +1008,22 @@ class MicroRaveApp:
         self._state = State.ENTERING_TIME
         self.display.show("0000")
         log.info("Cleared — ready for input.")
+        self._start_entry_timer()
+
+    def _on_door_timeout(self):
+        log.info("Door left open — auto-cancelled.")
+        self._race_abort.set()
+        self.timer.stop()
+        self.audio.stop()
+        self.buf.clear()
+        self._state = State.IDLE
+        self._show_clock(force=True)
 
     def _on_add_30(self):
         log.info("Button: +30s")
         self.audio.beep()
         if self._state in (State.IDLE, State.ENTERING_TIME):
-            self.buf.push(3)
-            self.buf.push(0)
+            self.buf.set_from_seconds(self.buf.to_seconds() + 30)
             self._state = State.ENTERING_TIME
             self.display.show(self.buf.display_str())
             self._begin_countdown()
@@ -943,7 +1063,7 @@ class MicroRaveApp:
             self._pause_countdown()
             if DOOR_OPEN_TIMEOUT > 0:
                 self._door_timer = threading.Timer(
-                    DOOR_OPEN_TIMEOUT, lambda: self._post(self._on_stop)
+                    DOOR_OPEN_TIMEOUT, lambda: self._post(self._on_door_timeout)
                 )
                 self._door_timer.daemon = True
                 self._door_timer.start()
@@ -968,6 +1088,42 @@ class MicroRaveApp:
         if self._state == State.FINISHED:
             self._state = State.IDLE
             self._show_clock(force=True)
+            if RANDOM_DJ_ON_FINISH:
+                others = [dj for dj in range(1, 7) if dj != self.playlists.selected]
+                self._start_dj_race(random.choice(others))
+
+    def _start_dj_race(self, target_dj: int) -> None:
+        self._dj_race_abort.clear()
+        t = threading.Thread(target=self._dj_race_worker, args=(target_dj,), daemon=True)
+        t.start()
+
+    def _dj_race_worker(self, target_dj: int) -> None:
+        # Animate lights clockwise around the 2×3 grid for DJ_RACE_LAPS full laps,
+        # then continue until landing on target_dj.
+        seq = DJ_RACE_SEQUENCE
+        for _ in range(DJ_RACE_LAPS):
+            for dj in seq:
+                if self._dj_race_abort.is_set():
+                    return
+                self.relays.set_dj(dj)
+                time.sleep(DJ_RACE_STEP_S)
+        for dj in seq:
+            if self._dj_race_abort.is_set():
+                return
+            self.relays.set_dj(dj)
+            time.sleep(DJ_RACE_STEP_S)
+            if dj == target_dj:
+                break
+        if not self._dj_race_abort.is_set():
+            self.playlists.select(target_dj)
+            log.info("Random DJ selected after session: DJ%d", target_dj)
+            self._post(self._flash_dj, target_dj)
+
+    def _flash_dj(self, dj: int) -> None:
+        self.display.show(f"dJ {dj}", colon=False)
+        t = threading.Timer(1.5, lambda: self._post(self._restore_display))
+        t.daemon = True
+        t.start()
 
     # -------------------------------------------------------------------------
     # Easter egg handlers
@@ -1030,18 +1186,21 @@ class MicroRaveApp:
     def _fmt_countdown(self, remaining: int) -> str:
         """
         Format remaining seconds for display.
-        Preserves the original minutes digit so that e.g. 0:69 shows as '0069'
-        and 6:66 shows as '0666' through the initial part of its countdown.
-        Once remaining drops below mm*60 the display normalizes naturally.
+        Preserves the original minutes digit for easter egg combos like 0:69 or 6:66.
+        Falls back to normal MM:SS when extra seconds exceed 99 (e.g. after many +30 presses)
+        to avoid 5-char format strings that cause the display to update only every 10 ticks.
         """
-        if remaining > self._cd_mm * 60:
-            return "%02d%02d" % (self._cd_mm, remaining - self._cd_mm * 60)
+        extra = remaining - self._cd_mm * 60
+        if 0 <= extra <= 99:
+            return "%02d%02d" % (self._cd_mm, extra)
         m, s = divmod(remaining, 60)
         return "%02d%02d" % (min(m, 99), s)
 
     def _begin_countdown(self):
+        self._cancel_entry_timer()
         if not self._door_closed:
             log.info("Start pressed with door open — armed, waiting for door close.")
+            self._start_entry_timer()
             return
         secs = self.buf.to_seconds()
         if secs == 0:
@@ -1097,6 +1256,30 @@ class MicroRaveApp:
             self._door_timer.cancel()
             self._door_timer = None
 
+    def _start_entry_timer(self):
+        self._cancel_entry_timer()
+        if ENTRY_IDLE_TIMEOUT > 0:
+            t = threading.Timer(ENTRY_IDLE_TIMEOUT, lambda: self._post(self._go_idle_from_entry))
+            t.daemon = True
+            t.start()
+            self._entry_timer = t
+
+    def _cancel_entry_timer(self):
+        if self._entry_timer:
+            self._entry_timer.cancel()
+            self._entry_timer = None
+
+    def _go_idle_from_entry(self):
+        if self._state != State.ENTERING_TIME:
+            return
+        # Non-zero entries only time out when the door is open — door closed means
+        # the user may still be mid-entry and is about to press START.
+        if self.buf.is_zero() or not self._door_closed:
+            self.buf.clear()
+            self._state = State.IDLE
+            self._show_clock(force=True)
+            log.info("Entry idle timeout — returned to clock.")
+
     # -------------------------------------------------------------------------
     # Main loop  (runs on main thread — owns pygame event pump and rendering)
     # -------------------------------------------------------------------------
@@ -1105,11 +1288,13 @@ class MicroRaveApp:
         log.info("Running — Ctrl+C or Esc to quit.")
         try:
             while True:
-                for ev in pygame.event.get([pygame.QUIT, pygame.KEYDOWN]):
+                for ev in pygame.event.get():
                     if ev.type == pygame.QUIT:
                         return
                     if ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
                         return
+                    if ev.type == AudioEngine._MUSIC_END:
+                        self.audio.notify_music_end()
 
                 if self._state == State.IDLE:
                     self._show_clock()
@@ -1125,13 +1310,16 @@ class MicroRaveApp:
     def _shutdown(self):
         log.info("Shutting down…")
         self._race_abort.set()
+        self._dj_race_abort.set()
         self._cancel_door_timer()
+        self._cancel_entry_timer()
         self.timer.stop()
         self.audio.stop()
         self.audio.shutdown()        # flush unsaved play counts
         self._gpio_stop.set()        # signal poll thread to exit
         time.sleep(0.1)              # let it finish its current iteration
         self._q.put(_STOP_SENTINEL)  # drain dispatch thread cleanly
+        self.relays.close()
         try:
             lgpio.gpiochip_close(self._chip)
         except Exception:
