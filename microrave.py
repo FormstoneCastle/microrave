@@ -144,8 +144,10 @@ DJ_RACE_STEP_S      = 0.12   # seconds per step
 # 6767 overrides to 0:67 (67 sec) — the fun is in entering it
 EASTER_EGGS: dict[str, dict] = {
     "007":  {"folder": "007",  "seconds": 102,  "mm": 1,  "ss": 42},
-    "42":   {"folder": "042",  "seconds": 213,  "mm": 3,  "ss": 33},
+    "42":   {"folder": "042",  "seconds": 42,   "mm": 0,  "ss": 42,  "auto_duration": True},
+    "69":   {"folder": "069",  "seconds": 69,   "mm": 0,  "ss": 69},
     "069":  {"folder": "069",  "seconds": 69,   "mm": 0,  "ss": 69},
+    "0069": {"folder": "069",  "seconds": 69,   "mm": 0,  "ss": 69},
     "420":  {"folder": "420",  "seconds": 260,  "mm": 4,  "ss": 20},
     "666":  {"folder": "666",  "seconds": 426,  "mm": 6,  "ss": 66},
     "67":   {"folder": "067",  "seconds": 67,   "mm": 0,  "ss": 67},
@@ -1130,19 +1132,31 @@ class MicroRaveApp:
     # -------------------------------------------------------------------------
 
     def _begin_easter_egg(self, egg: dict, tracks: list):
-        log.info("Easter egg! '%s' — %ds countdown", egg['folder'], egg['seconds'])
-        self._state  = State.ANIMATING
-        self._cd_mm  = egg['mm']
+        auto_dur = egg.get("auto_duration", False)
+        self._state = State.ANIMATING
         self._race_abort.clear()
 
         entry_display = self.buf.display_str()  # capture typed digits before buffer clears
         track = random.choice(tracks)
+
+        # Determine countdown duration — auto_duration eggs measure the actual clip length
+        if auto_dur:
+            try:
+                actual_secs = max(1, round(pygame.mixer.Sound(track).get_length()))
+            except Exception:
+                actual_secs = egg['seconds']
+        else:
+            actual_secs = egg['seconds']
+
+        self._cd_mm = actual_secs // 60
+        log.info("Easter egg! '%s' — %ds countdown", egg['folder'], actual_secs)
+
         self.audio.start_easter(
             track,
             on_complete=lambda: self._post(self._on_easter_egg_audio_done)
         )
 
-        egg_secs = egg['seconds']
+        brief_display = "%04d" % egg['seconds']  # e.g. "0042" — shown briefly after race
 
         def _run_animation():
             # Flash the entered number 3 times
@@ -1160,7 +1174,12 @@ class MicroRaveApp:
             _race_animation(self.display, self._race_abort)
 
             if not self._race_abort.is_set():
-                self._post(self._on_easter_egg_countdown, egg_secs)
+                if auto_dur:
+                    # Wink at the number before showing actual duration
+                    self.display.show(brief_display)
+                    time.sleep(1.5)
+                if not self._race_abort.is_set():
+                    self._post(self._on_easter_egg_countdown, actual_secs)
 
         threading.Thread(target=_run_animation, name="EggAnim", daemon=True).start()
 
@@ -1272,13 +1291,10 @@ class MicroRaveApp:
     def _go_idle_from_entry(self):
         if self._state != State.ENTERING_TIME:
             return
-        # Non-zero entries only time out when the door is open — door closed means
-        # the user may still be mid-entry and is about to press START.
-        if self.buf.is_zero() or not self._door_closed:
-            self.buf.clear()
-            self._state = State.IDLE
-            self._show_clock(force=True)
-            log.info("Entry idle timeout — returned to clock.")
+        self.buf.clear()
+        self._state = State.IDLE
+        self._show_clock(force=True)
+        log.info("Entry idle timeout — returned to clock.")
 
     # -------------------------------------------------------------------------
     # Main loop  (runs on main thread — owns pygame event pump and rendering)
