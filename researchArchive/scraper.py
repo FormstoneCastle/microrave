@@ -62,9 +62,9 @@ def scrape_index():
         if not link:
             continue
         href = link["href"]
-        # Make absolute
+        # Make absolute — use urljoin so relative hrefs resolve against /archive/
         if not href.startswith("http"):
-            href = "http://ssbproductions.com" + href
+            href = urljoin(ARCHIVE_URL, href)
         # Skip nav and anchor links
         if href in SKIP_URLS or "#" in href or "/archive" in href:
             continue
