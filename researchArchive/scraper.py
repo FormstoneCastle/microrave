@@ -10,6 +10,7 @@ User-Agent attribution per Mike B's request:
 
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 import json
 import time
 import os
@@ -95,10 +96,9 @@ def scrape_gallery_page(url):
         src = img.get("src", "")
         if not src:
             continue
-        # Make absolute
+        # Make absolute (urljoin handles directory vs file URLs correctly)
         if not src.startswith("http"):
-            base = url.rstrip("/")
-            src = base + "/" + src.lstrip("/")
+            src = urljoin(url, src)
 
         # Derive full-res URL by stripping 'tn' prefix from filename
         parts = src.rsplit("/", 1)
@@ -173,8 +173,7 @@ def scrape_event(event):
         if not src:
             continue
         if not src.startswith("http"):
-            base = url.rstrip("/")
-            src = base + "/" + src.lstrip("/")
+            src = urljoin(url, src)
         parts = src.rsplit("/", 1)
         filename = parts[-1]
         if filename.lower().startswith("tn"):
