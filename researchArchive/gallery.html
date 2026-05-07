@@ -49,13 +49,8 @@ function showSlide(i) {
 
   img.src = p.full;
   img.onerror = () => {
-    // Fall back to thumbnail if full-res fails
-    if (img.src !== p.thumb) {
-      img.src = p.thumb;
-    } else {
-      img.style.display = 'none';
-      errEl.style.display = 'block';
-    }
+    img.style.display = 'none';
+    errEl.style.display = 'block';
   };
 
   document.getElementById('slide-counter').textContent = `${current + 1} / ${photos.length}`;
@@ -79,7 +74,7 @@ function buildThumbs() {
   strip.innerHTML = '';
   photos.forEach((p, i) => {
     const img = document.createElement('img');
-    img.src = p.thumb;
+    img.src = p.full;
     img.className = 'thumb';
     img.alt = p.caption || '';
     img.title = p.caption || '';
