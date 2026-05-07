@@ -2,6 +2,824 @@
   "scraped_at": "2026-05-07T13:33:30.355848",
   "events": [
     {
+      "name": "Catharsis on the Mall: Saturday",
+      "date": "November 11, 2017",
+      "url": "http://ssbproductions.com/catharsis111117/",
+      "status": "alive",
+      "photos": [
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0785.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0785.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0786.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0786.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0788.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0788.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0789.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0789.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0791.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0791.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0793.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0793.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0794.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0794.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0796.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0796.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0798.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0798.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0799.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0799.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0800.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0800.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0802.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0802.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0804.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0804.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0806.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0806.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0807.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0807.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0808.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0808.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0809.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0809.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0810.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0810.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0812.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0812.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0813.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0813.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0814.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0814.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0816.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0816.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0817.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0817.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0818.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0818.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0819.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0819.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0820.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0820.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0821.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0821.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0822.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0822.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0823.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0823.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0824.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0824.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0825.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0825.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0826.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0826.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0828.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0828.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0829.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0829.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0830.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0830.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0832.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0832.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0833.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0833.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0834.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0834.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0835.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0835.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0837.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0837.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0838.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0838.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0840.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0840.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0841.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0841.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0842.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0842.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0844.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0844.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0845.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0845.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0846.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0846.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0847.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0847.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0848.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0848.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0849.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0849.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0850.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0850.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0852.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0852.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0853.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0853.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0855.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0855.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0857.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0857.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0858.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0858.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0859.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0859.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0860.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0860.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0861.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0861.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0863.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0863.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0864.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0864.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0866.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0866.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0867.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0867.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0868.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0868.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0869.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0869.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0870.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0870.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0873.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0873.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0875.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0875.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0876.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0876.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111117/tn/DSC_0878.JPG",
+          "full": "http://ssbproductions.com/catharsis111117/DSC_0878.JPG",
+          "caption": ""
+        }
+      ],
+      "source": "homepage"
+    },
+    {
+      "name": "Catharsis on the Mall: Friday",
+      "date": "November 10, 2017",
+      "url": "http://ssbproductions.com/catharsis111017/",
+      "status": "alive",
+      "photos": [
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0654.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0654.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0655.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0655.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0656.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0656.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0657.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0657.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0658.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0658.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0661.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0661.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0662.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0662.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0664.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0664.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0665.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0665.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0667.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0667.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0668.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0668.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0669.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0669.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0670.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0670.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0671.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0671.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0672.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0672.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0673.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0673.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0674.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0674.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0675.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0675.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0676.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0676.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0677.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0677.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0678.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0678.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0680.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0680.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0681.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0681.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0682.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0682.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0683.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0683.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0684.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0684.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0685.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0685.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0686.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0686.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0687.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0687.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0688.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0688.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0689.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0689.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0693.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0693.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0695.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0695.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0698.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0698.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0700.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0700.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0701.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0701.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0702.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0702.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0703.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0703.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0704.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0704.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0705.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0705.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0707.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0707.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0708.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0708.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0711.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0711.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0712.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0712.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0713.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0713.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0714.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0714.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0717.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0717.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0718.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0718.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0725.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0725.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0727.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0727.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0728.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0728.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0729.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0729.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0730.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0730.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0731.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0731.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0734.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0734.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0736.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0736.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0737.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0737.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0738.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0738.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0740.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0740.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0741.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0741.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0742.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0742.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0743.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0743.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0744.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0744.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0745.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0745.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0747.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0747.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0748.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0748.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0749.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0749.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0750.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0750.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0751.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0751.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0752.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0752.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0753.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0753.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0756.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0756.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0757.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0757.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0759.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0759.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0763.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0763.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0764.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0764.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0765.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0765.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0766.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0766.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0767.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0767.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0768.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0768.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0771.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0771.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0773.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0773.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0775.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0775.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0776.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0776.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0778.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0778.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0780.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0780.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0781.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0781.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0782.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0782.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0783.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0783.JPG",
+          "caption": ""
+        },
+        {
+          "thumb": "http://ssbproductions.com/catharsis111017/tn/DSC_0784.JPG",
+          "full": "http://ssbproductions.com/catharsis111017/DSC_0784.JPG",
+          "caption": ""
+        }
+      ],
+      "source": "homepage"
+    },
+    {
       "name": "Transit at Uptown: St. Patrick's Day",
       "date": "March 17, 2010",
       "url": "http://ssbproductions.com/transit031710/",
