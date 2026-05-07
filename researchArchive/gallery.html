@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSB Gallery</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="gallery-header">
+  <h1 id="event-title">Loading…</h1>
+  <span class="meta" id="event-meta"></span>
+  <a href="index.html" id="back-link">← All Events</a>
+</div>
+
+<div id="slideshow">
+  <div id="slide-img-wrap">
+    <img id="slide-img" src="" alt="">
+    <div id="slide-error">Image not available on source server.</div>
+  </div>
+
+  <div id="slide-controls">
+    <button class="ctrl-btn" id="btn-prev">&#8592;</button>
+    <span id="slide-counter">1 / 1</span>
+    <button class="ctrl-btn" id="btn-next">&#8594;</button>
+  </div>
+
+  <div id="slide-caption"></div>
+
+  <div id="thumb-strip"></div>
+</div>
+
+<script>
+const DATA_URL = 'data.json';
+
+let photos = [];
+let current = 0;
+
+function showSlide(i) {
+  if (i < 0 || i >= photos.length) return;
+  current = i;
+  const p = photos[current];
+
+  const img = document.getElementById('slide-img');
+  const errEl = document.getElementById('slide-error');
+  img.style.display = 'block';
+  errEl.style.display = 'none';
+
+  img.src = p.full;
+  img.onerror = () => {
+    // Fall back to thumbnail if full-res fails
+    if (img.src !== p.thumb) {
+      img.src = p.thumb;
+    } else {
+      img.style.display = 'none';
+      errEl.style.display = 'block';
+    }
+  };
+
+  document.getElementById('slide-counter').textContent = `${current + 1} / ${photos.length}`;
+  document.getElementById('slide-caption').textContent = p.caption || '';
+
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === photos.length - 1;
+
+  // Update active thumbnail
+  document.querySelectorAll('.thumb').forEach((t, idx) => {
+    t.classList.toggle('active', idx === current);
+  });
+
+  // Scroll active thumb into view
+  const activThumb = document.querySelector('.thumb.active');
+  if (activThumb) activThumb.scrollIntoView({ block: 'nearest', inline: 'center' });
+}
+
+function buildThumbs() {
+  const strip = document.getElementById('thumb-strip');
+  strip.innerHTML = '';
+  photos.forEach((p, i) => {
+    const img = document.createElement('img');
+    img.src = p.thumb;
+    img.className = 'thumb';
+    img.alt = p.caption || '';
+    img.title = p.caption || '';
+    img.addEventListener('click', () => showSlide(i));
+    strip.appendChild(img);
+  });
+}
+
+async function init() {
+  const params = new URLSearchParams(location.search);
+  const targetUrl = params.get('id');
+  if (!targetUrl) {
+    document.getElementById('event-title').textContent = 'No event specified.';
+    return;
+  }
+
+  let data;
+  try {
+    const r = await fetch(DATA_URL);
+    data = await r.json();
+  } catch (e) {
+    document.getElementById('event-title').textContent = 'Could not load data.json.';
+    return;
+  }
+
+  const event = (data.events || []).find(e => e.url === targetUrl);
+  if (!event) {
+    document.getElementById('event-title').textContent = 'Event not found.';
+    return;
+  }
+
+  document.title = event.name + ' — SSB Archive';
+  document.getElementById('event-title').textContent = event.name;
+  document.getElementById('event-meta').textContent = event.date;
+
+  photos = event.photos || [];
+
+  if (photos.length === 0) {
+    document.getElementById('slideshow').innerHTML = '<p style="color:var(--muted);padding:2rem">No photos available for this event.</p>';
+    return;
+  }
+
+  buildThumbs();
+  showSlide(0);
+}
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') showSlide(current - 1);
+  if (e.key === 'ArrowRight') showSlide(current + 1);
+});
+
+document.getElementById('btn-prev').addEventListener('click', () => showSlide(current - 1));
+document.getElementById('btn-next').addEventListener('click', () => showSlide(current + 1));
+
+init();
+</script>
+</body>
+</html>

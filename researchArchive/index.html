@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSB Productions Archive</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Mr. SideShow Bob — Party Picture Archive</h1>
+  <p>Photos scraped from <a href="http://ssbproductions.com/archive/" style="color:inherit">ssbproductions.com</a> for personal viewing. Thank you SideShow Bob! — Mike B</p>
+</header>
+
+<div id="search-bar">
+  <input type="search" id="search" placeholder="Search events…" autocomplete="off">
+</div>
+
+<div id="stats"></div>
+
+<ul id="event-list"></ul>
+
+<script>
+const DATA_URL = 'data.json';
+
+async function init() {
+  let data;
+  try {
+    const r = await fetch(DATA_URL);
+    data = await r.json();
+  } catch (e) {
+    document.getElementById('stats').textContent = 'data.json not found — run scraper.py first.';
+    return;
+  }
+
+  const events = data.events || [];
+  const alive = events.filter(e => e.status === 'alive').length;
+  const total = events.length;
+
+  const statsEl = document.getElementById('stats');
+  statsEl.textContent = `${total} events · ${alive} with photos · ${total - alive} broken`;
+
+  const list = document.getElementById('event-list');
+  const search = document.getElementById('search');
+
+  function render(filter) {
+    const q = filter.toLowerCase();
+    list.innerHTML = '';
+    let shown = 0;
+    for (const ev of events) {
+      if (q && !ev.name.toLowerCase().includes(q) && !ev.date.toLowerCase().includes(q)) continue;
+      shown++;
+      const li = document.createElement('li');
+      if (ev.status === 'broken') li.classList.add('broken');
+
+      const count = ev.photos ? ev.photos.length : 0;
+      const badgeClass = ev.status === 'alive' ? 'badge-alive' : 'badge-broken';
+
+      if (ev.status === 'alive') {
+        const a = document.createElement('a');
+        a.href = `gallery.html?id=${encodeURIComponent(ev.url)}`;
+        a.innerHTML = `
+          <span class="badge ${badgeClass}"></span>
+          <span class="event-name">${ev.name}</span>
+          <span class="event-count">${count} photos</span>
+          <span class="event-date">${ev.date}</span>
+        `;
+        li.appendChild(a);
+      } else {
+        const a = document.createElement('a');
+        a.innerHTML = `
+          <span class="badge ${badgeClass}"></span>
+          <span class="event-name">${ev.name}</span>
+          <span class="event-count">—</span>
+          <span class="event-date">${ev.date}</span>
+        `;
+        li.appendChild(a);
+      }
+      list.appendChild(li);
+    }
+    statsEl.textContent = `${total} events · ${alive} with photos · ${total - alive} broken · showing ${shown}`;
+  }
+
+  render('');
+  search.addEventListener('input', () => render(search.value));
+}
+
+init();
+</script>
+</body>
+</html>
