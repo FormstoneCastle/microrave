@@ -34,6 +34,12 @@
 <script>
 const DATA_URL = 'data.json';
 
+// ssbproductions.com is HTTP-only with an expired HTTPS cert.
+// Proxy through wsrv.nl so images load on our HTTPS page.
+function proxyUrl(url) {
+  return 'https://wsrv.nl/?url=' + url.replace(/^https?:\/\//, '');
+}
+
 let photos = [];
 let current = 0;
 
@@ -47,7 +53,7 @@ function showSlide(i) {
   img.style.display = 'block';
   errEl.style.display = 'none';
 
-  img.src = p.full;
+  img.src = proxyUrl(p.full);
   img.onerror = () => {
     img.style.display = 'none';
     errEl.style.display = 'block';
@@ -74,7 +80,7 @@ function buildThumbs() {
   strip.innerHTML = '';
   photos.forEach((p, i) => {
     const img = document.createElement('img');
-    img.src = p.full;
+    img.src = proxyUrl(p.full);
     img.className = 'thumb';
     img.alt = p.caption || '';
     img.title = p.caption || '';

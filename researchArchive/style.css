@@ -114,10 +114,12 @@ header p {
   white-space: nowrap;
 }
 
-li.broken a {
+.broken-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 2rem;
   color: var(--muted);
-  cursor: default;
-  pointer-events: none;
 }
 
 /* ── Gallery / slideshow page ── */
