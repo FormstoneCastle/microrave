@@ -232,3 +232,13 @@ header p {
 }
 .thumb:hover { opacity: 0.9; }
 .thumb.active { opacity: 1; border-color: var(--accent); }
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
