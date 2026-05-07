@@ -57,6 +57,16 @@ header p {
 }
 #search-bar input:focus { border-color: var(--accent); }
 
+#broken-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+
 #stats {
   padding: 0.5rem 2rem;
   color: var(--muted);

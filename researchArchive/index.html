@@ -15,6 +15,7 @@
 
 <div id="search-bar">
   <input type="search" id="search" placeholder="Search events…" autocomplete="off">
+  <label id="broken-toggle"><input type="checkbox" id="show-broken"> Show broken (no photos)</label>
 </div>
 
 <div id="stats"></div>
@@ -43,12 +44,15 @@ async function init() {
 
   const list = document.getElementById('event-list');
   const search = document.getElementById('search');
+  const showBroken = document.getElementById('show-broken');
 
   function render(filter) {
     const q = filter.toLowerCase();
+    const includeBroken = showBroken.checked;
     list.innerHTML = '';
     let shown = 0;
     for (const ev of events) {
+      if (!includeBroken && ev.status === 'broken') continue;
       if (q && !ev.name.toLowerCase().includes(q) && !ev.date.toLowerCase().includes(q)) continue;
       shown++;
       const li = document.createElement('li');
@@ -84,6 +88,7 @@ async function init() {
 
   render('');
   search.addEventListener('input', () => render(search.value));
+  showBroken.addEventListener('change', () => render(search.value));
 }
 
 init();
