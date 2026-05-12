@@ -153672,422 +153672,2354 @@
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2761.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2761.JPG",
-          "caption": "Sun Rise"
+          "caption": "Sun Rise",
+          "rotation": 90,
+          "rotation_score": 0.391,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.391
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.306
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:20:50.397048+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2762.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2762.JPG",
-          "caption": "Sun Rise"
+          "caption": "Sun Rise",
+          "rotation": 270,
+          "rotation_score": 0.812,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.352
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.56
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.812
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:20:52.448490+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tncalendar.jpg",
           "full": "http://ssbproductions.com/sonar0110/calendar.jpg",
-          "caption": "Sun Rise"
+          "caption": "Sun Rise",
+          "rotation": 90,
+          "rotation_score": 0.508,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.508
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:20:54.529624+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tncalendar3.jpg",
           "full": "http://ssbproductions.com/sonar0110/calendar3.jpg",
-          "caption": "Sun Rise"
+          "caption": "Sun Rise",
+          "rotation": 0,
+          "rotation_score": 0,
+          "rotation_status": "no_face",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:20:56.713067+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2764.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2764.jpg",
-          "caption": "Ultraworld Sonar February Line-up"
+          "caption": "Ultraworld Sonar February Line-up",
+          "rotation": 0,
+          "rotation_score": 0,
+          "rotation_status": "no_face",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:00.384522+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2765.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2765.JPG",
-          "caption": "Ultraworld Sonar February Line-up"
+          "caption": "Ultraworld Sonar February Line-up",
+          "rotation": 0,
+          "rotation_score": 0.365,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.365
+            },
+            "90": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:02.210483+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2766.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2766.jpg",
-          "caption": "Ultraworld Sonar February Line-up"
+          "caption": "Ultraworld Sonar February Line-up",
+          "rotation": 90,
+          "rotation_score": 0.85,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.715
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.85
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.689
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.382
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:04.325501+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2767.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2767.jpg",
-          "caption": "Ultraworld Sonar February Line-up"
+          "caption": "Ultraworld Sonar February Line-up",
+          "rotation": 90,
+          "rotation_score": 0.801,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.473
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.801
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.562
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:06.818385+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2768.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2768.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 180,
+          "rotation_score": 1.122,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.652
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.94
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.122
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.322
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:08.572228+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2769.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2769.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 90,
+          "rotation_score": 0.945,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.673
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.945
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.607
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.374
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:10.359213+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2770.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2770.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 90,
+          "rotation_score": 0.883,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.37
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.883
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.658
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.351
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:12.450019+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2771.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2771.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 90,
+          "rotation_score": 0.643,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.406
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.643
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.564
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.397
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:14.203649+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2772.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2772.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 180,
+          "rotation_score": 1.131,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.113
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.852
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.131
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.528
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:15.976113+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2773.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2773.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 0,
+          "rotation_score": 1.082,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.082
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.94
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.859
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.73
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:17.717380+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2774.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2774.jpg",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation": 90,
+          "rotation_score": 0.877,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.786
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.877
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.695
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.593
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:19.325315+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2775.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2775.JPG",
-          "caption": "DJ: Bryce"
+          "caption": "DJ: Bryce",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:24:48.393005+00:00",
+          "rotation": 90,
+          "rotation_score": 1.117,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.758
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.117
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.672
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.811
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2776.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2776.JPG",
-          "caption": "MC: Illy"
+          "caption": "MC: Illy",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:24:50.712779+00:00",
+          "rotation": 0,
+          "rotation_score": 0.881,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.881
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.694
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.471
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.568
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2778.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2778.JPG",
-          "caption": "MC: Illy"
+          "caption": "MC: Illy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:24:52.626246+00:00",
+          "rotation": 0,
+          "rotation_score": 0.898,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.898
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.776
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.719
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.799
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2780.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2780.JPG",
-          "caption": "MC: Illy"
+          "caption": "MC: Illy",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:24:55.065434+00:00",
+          "rotation": 0,
+          "rotation_score": 0.386,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.386
+            },
+            "90": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2781.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2781.JPG",
-          "caption": "MC: Illy"
+          "caption": "MC: Illy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:24:56.797282+00:00",
+          "rotation": 90,
+          "rotation_score": 0.363,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.363
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.31
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2783.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2783.JPG",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:24:58.875431+00:00",
+          "rotation": 90,
+          "rotation_score": 1.186,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.884
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.186
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.468
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.641
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2785.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2785.jpg",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation": 0,
+          "rotation_score": 1.078,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.078
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.924
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.792
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.398
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:31.595539+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2786.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2786.jpg",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation": 180,
+          "rotation_score": 0.882,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.617
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.855
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 0.882
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.461
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:33.939818+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2787.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2787.jpg",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation": 180,
+          "rotation_score": 1.435,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 0.975
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.22
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.435
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.47
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:35.858832+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2788.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2788.JPG",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:00.890209+00:00",
+          "rotation": 0,
+          "rotation_score": 0.914,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.914
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.59
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.697
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.696
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2789.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2789.JPG",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:04.091917+00:00",
+          "rotation": 90,
+          "rotation_score": 1.679,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 0.878
+            },
+            "90": {
+              "n_faces": 4,
+              "score": 1.679
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 0.875
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.814
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2791.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2791.jpg",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation": 0,
+          "rotation_score": 1.157,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.157
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.834
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.789
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.636
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:40.751668+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2793.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2793.jpg",
-          "caption": "DJ: Adam T Rush"
+          "caption": "DJ: Adam T Rush",
+          "rotation": 90,
+          "rotation_score": 0.96,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.856
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.96
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.721
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.528
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:44.211017+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2794.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2794.jpg",
-          "caption": "Bekka"
+          "caption": "Bekka",
+          "rotation": 90,
+          "rotation_score": 0.956,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.879
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.956
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.837
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.703
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:46.108429+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2795.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2795.JPG",
-          "caption": "Bekka"
+          "caption": "Bekka",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:06.196082+00:00",
+          "rotation": 0,
+          "rotation_score": 1.329,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.329
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.746
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.572
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.321
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2796.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2796.jpg",
-          "caption": "Bekka"
+          "caption": "Bekka",
+          "rotation": 90,
+          "rotation_score": 1.474,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.718
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.474
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.84
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.612
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:50.642644+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2797.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2797.jpg",
-          "caption": "Bekka"
+          "caption": "Bekka",
+          "rotation": 90,
+          "rotation_score": 0.967,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.952
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.967
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.924
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.697
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:53.047101+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2798.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2798.jpg",
-          "caption": "Sachi and guy"
+          "caption": "Sachi and guy",
+          "rotation": 90,
+          "rotation_score": 1.883,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.657
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.883
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.474
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.511
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:54.823498+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2799.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2799.jpg",
-          "caption": "Sachi and guy"
+          "caption": "Sachi and guy",
+          "rotation": 90,
+          "rotation_score": 1.589,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.145
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.589
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.364
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.768
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:56.603193+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2800.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2800.jpg",
-          "caption": "Sachi and guy"
+          "caption": "Sachi and guy",
+          "rotation": 180,
+          "rotation_score": 1.463,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.273
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.379
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.463
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.108
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:21:59.822387+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2801.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2801.jpg",
-          "caption": "Sachi and guy"
+          "caption": "Sachi and guy",
+          "rotation": 90,
+          "rotation_score": 1.469,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.379
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.469
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.802
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.815
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:01.785380+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2802.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2802.jpg",
-          "caption": "MC: Escher"
+          "caption": "MC: Escher",
+          "rotation": 0,
+          "rotation_score": 2.037,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 2.037
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.847
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.309
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.638
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:06.020587+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2803.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2803.jpg",
-          "caption": "MC: Escher"
+          "caption": "MC: Escher",
+          "rotation": 180,
+          "rotation_score": 2.025,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 1.872
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.799
+            },
+            "180": {
+              "n_faces": 4,
+              "score": 2.025
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.418
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:07.917305+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2804.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2804.jpg",
-          "caption": "MC: Escher"
+          "caption": "MC: Escher",
+          "rotation": 90,
+          "rotation_score": 0.96,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.837
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.96
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.87
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.638
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:09.680462+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2805.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2805.jpg",
-          "caption": "MC: Escher"
+          "caption": "MC: Escher",
+          "rotation": 90,
+          "rotation_score": 0.954,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.873
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.954
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.882
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.734
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:11.418858+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2806.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2806.JPG",
-          "caption": "Michael Maxim and Mark Forrest"
+          "caption": "Michael Maxim and Mark Forrest",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:08.004899+00:00",
+          "rotation": 0,
+          "rotation_score": 1.813,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.813
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.574
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.228
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.371
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2808.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2808.JPG",
-          "caption": "Michael Maxim and Mark Forrest"
+          "caption": "Michael Maxim and Mark Forrest",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:10.299203+00:00",
+          "rotation": 0,
+          "rotation_score": 1.851,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.851
+            },
+            "90": {
+              "n_faces": 3,
+              "score": 1.591
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.296
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.255
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2809.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2809.JPG",
-          "caption": "Michael Maxim and Mark Forrest"
+          "caption": "Michael Maxim and Mark Forrest",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:13.509154+00:00",
+          "rotation": 0,
+          "rotation_score": 2.819,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 2.819
+            },
+            "90": {
+              "n_faces": 3,
+              "score": 2.362
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.476
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 2.525
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2810.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2810.jpg",
-          "caption": "Michael Maxim and Mark Forrest"
+          "caption": "Michael Maxim and Mark Forrest",
+          "rotation": 0,
+          "rotation_score": 2.053,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 4,
+              "score": 2.053
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.871
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.36
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.105
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:18.729732+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2811.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2811.jpg",
-          "caption": "Crowd Shot"
+          "caption": "Crowd Shot",
+          "rotation": 90,
+          "rotation_score": 1.88,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.738
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.88
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.649
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.211
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:20.628820+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2812.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2812.JPG",
-          "caption": "Crowd Shot"
+          "caption": "Crowd Shot",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:15.546633+00:00",
+          "rotation": 0,
+          "rotation_score": 2.765,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 2.765
+            },
+            "90": {
+              "n_faces": 3,
+              "score": 2.195
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.266
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.942
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2815.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2815.JPG",
-          "caption": "Crowd Shot"
+          "caption": "Crowd Shot",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:17.606724+00:00",
+          "rotation": 0,
+          "rotation_score": 0.959,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 0.959
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.366
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.363
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2816.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2816.JPG",
-          "caption": "Crowd Shot"
+          "caption": "Crowd Shot",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:19.858503+00:00",
+          "rotation": 0,
+          "rotation_score": 1.171,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.171
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.475
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.596
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2817.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2817.jpg",
-          "caption": "Patrick and Alison"
+          "caption": "Patrick and Alison",
+          "rotation": 90,
+          "rotation_score": 0.932,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.815
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.932
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.639
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.506
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:28.735006+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2818.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2818.jpg",
-          "caption": "Patrick and Alison"
+          "caption": "Patrick and Alison",
+          "rotation": 0,
+          "rotation_score": 1.511,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 1.511
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.936
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.246
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.59
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:30.540733+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2819.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2819.JPG",
-          "caption": "Patrick and Alison"
+          "caption": "Patrick and Alison",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:21.630622+00:00",
+          "rotation": 0,
+          "rotation_score": 1.833,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.833
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.204
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.08
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.497
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2820.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2820.jpg",
-          "caption": "Patrick and Alison"
+          "caption": "Patrick and Alison",
+          "rotation": 90,
+          "rotation_score": 1.916,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.15
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.916
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.767
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.651
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:34.210613+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2821.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2821.JPG",
-          "caption": "Guy, Sachi, Rally, and Jackson"
+          "caption": "Guy, Sachi, Rally, and Jackson",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:23.400701+00:00",
+          "rotation": 0,
+          "rotation_score": 3.548,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 4,
+              "score": 3.548
+            },
+            "90": {
+              "n_faces": 4,
+              "score": 2.643
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.591
+            },
+            "270": {
+              "n_faces": 4,
+              "score": 2.54
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2822.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2822.jpg",
-          "caption": "Guy, Sachi, Rally, and Jackson"
+          "caption": "Guy, Sachi, Rally, and Jackson",
+          "rotation": 90,
+          "rotation_score": 1.316,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.204
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.316
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.868
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.169
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:41.986333+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2824.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2824.JPG",
-          "caption": "Guy, Sachi, Rally, and Jackson"
+          "caption": "Guy, Sachi, Rally, and Jackson",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:26.125056+00:00",
+          "rotation": 90,
+          "rotation_score": 0.68,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 0.68
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2825.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2825.JPG",
-          "caption": "Guy, Sachi, Rally, and Jackson"
+          "caption": "Guy, Sachi, Rally, and Jackson",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:28.131910+00:00",
+          "rotation": 0,
+          "rotation_score": 1.766,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.766
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.446
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.24
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.329
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2826.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2826.jpg",
-          "caption": "Libby"
+          "caption": "Libby",
+          "rotation": 180,
+          "rotation_score": 2.116,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 1.836
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.908
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 2.116
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.713
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:46.796087+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2827.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2827.jpg",
-          "caption": "Libby"
+          "caption": "Libby",
+          "rotation": 0,
+          "rotation_score": 1.168,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.168
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.853
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.819
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.16
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:48.549306+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2828.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2828.JPG",
-          "caption": "Libby"
+          "caption": "Libby",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:31.030621+00:00",
+          "rotation": 0,
+          "rotation_score": 3.1,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 4,
+              "score": 3.1
+            },
+            "90": {
+              "n_faces": 5,
+              "score": 2.952
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.05
+            },
+            "270": {
+              "n_faces": 3,
+              "score": 1.965
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2830.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2830.jpg",
-          "caption": "Libby"
+          "caption": "Libby",
+          "rotation": 180,
+          "rotation_score": 1.654,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.393
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.937
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.654
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.823
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:51.786932+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2831.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2831.jpg",
-          "caption": "Sonar sign"
+          "caption": "Sonar sign",
+          "rotation": 90,
+          "rotation_score": 1.803,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.256
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.803
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.234
+            },
+            "270": {
+              "n_faces": 4,
+              "score": 1.675
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:22:54.202204+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2832.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2832.JPG",
-          "caption": "Sonar sign"
+          "caption": "Sonar sign",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:32.962939+00:00",
+          "rotation": 0,
+          "rotation_score": 1.031,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 1.031
+            },
+            "90": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.02
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.401
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2833.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2833.JPG",
-          "caption": "Sonar sign"
+          "caption": "Sonar sign",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:34.950376+00:00",
+          "rotation": 0,
+          "rotation_score": 2.396,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 3,
+              "score": 2.396
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.438
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.158
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.608
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2836.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2836.JPG",
-          "caption": "Sonar sign"
+          "caption": "Sonar sign",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:36.722863+00:00",
+          "rotation": 180,
+          "rotation_score": 0.721,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.605
+            },
+            "90": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 0.721
+            },
+            "270": {
+              "n_faces": 0,
+              "score": 0
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2837.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2837.JPG",
-          "caption": "Front Room"
+          "caption": "Front Room",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:39.214460+00:00",
+          "rotation": 180,
+          "rotation_score": 1.041,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.358
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.419
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.041
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.444
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2839.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2839.JPG",
-          "caption": "Front Room"
+          "caption": "Front Room",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:40.998152+00:00",
+          "rotation": 0,
+          "rotation_score": 0.913,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.913
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.752
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.693
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.763
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2840.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2840.jpg",
-          "caption": "Front Room"
+          "caption": "Front Room",
+          "rotation": 180,
+          "rotation_score": 1.95,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.517
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.903
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.95
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.227
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:03.686457+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2841.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2841.jpg",
-          "caption": "Front Room"
+          "caption": "Front Room",
+          "rotation": 90,
+          "rotation_score": 1.603,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.184
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.603
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.142
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.38
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:05.532810+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2842.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2842.jpg",
-          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)"
+          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)",
+          "rotation": 90,
+          "rotation_score": 0.838,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.734
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.838
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.611
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.614
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:07.518358+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2843.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2843.jpg",
-          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)"
+          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)",
+          "rotation": 90,
+          "rotation_score": 0.925,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.716
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.925
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.49
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.335
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:09.416059+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2844.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2844.jpg",
-          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)"
+          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)",
+          "rotation": 270,
+          "rotation_score": 1.218,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.875
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 0.956
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.512
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.218
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:11.725170+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2845.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2845.jpg",
-          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)"
+          "caption": "DJ: Dieselboy (Hey, email me. I need to snail mail you something)",
+          "rotation": 0,
+          "rotation_score": 1.283,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.283
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.928
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.62
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.397
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:13.638288+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2846.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2846.jpg",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation": 90,
+          "rotation_score": 0.801,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.748
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.801
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.61
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.699
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:15.560533+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2847.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2847.jpg",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation": 90,
+          "rotation_score": 0.932,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.863
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.932
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.653
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.585
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:17.318286+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2848.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2848.JPG",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:42.756797+00:00",
+          "rotation": 0,
+          "rotation_score": 0.476,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.476
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.34
+            },
+            "180": {
+              "n_faces": 0,
+              "score": 0
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.386
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2849.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2849.JPG",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:44.541150+00:00",
+          "rotation": 180,
+          "rotation_score": 1.663,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.584
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.052
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.663
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.966
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2850.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2850.JPG",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation_status": "ok",
+          "rotation_checked_at": "2026-05-12T20:25:46.896512+00:00",
+          "rotation": 180,
+          "rotation_score": 1.414,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.234
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 0.984
+            },
+            "180": {
+              "n_faces": 3,
+              "score": 1.414
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.251
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2851.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2851.jpg",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation": 270,
+          "rotation_score": 0.966,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.79
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.92
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.751
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.966
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:24.179509+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2852.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2852.jpg",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation": 270,
+          "rotation_score": 1.175,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.609
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.705
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.634
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.175
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:26.543313+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2854.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2854.jpg",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation": 180,
+          "rotation_score": 1.056,
+          "rotation_status": "ok",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.807
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.878
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.056
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.849
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:28.354610+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2855.jpg",
           "full": "http://ssbproductions.com/sonar0110/IMG_2855.jpg",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation": 90,
+          "rotation_score": 0.867,
+          "rotation_status": "ambiguous",
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.767
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.867
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.603
+            },
+            "270": {
+              "n_faces": 1,
+              "score": 0.633
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1",
+          "rotation_checked_at": "2026-05-12T20:23:30.342955+00:00"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2856.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2856.JPG",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:49.301402+00:00",
+          "rotation": 180,
+          "rotation_score": 1.217,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 2,
+              "score": 1.102
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.188
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 1.217
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.03
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2857.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2857.JPG",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:52.077125+00:00",
+          "rotation": 180,
+          "rotation_score": 0.874,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.606
+            },
+            "90": {
+              "n_faces": 1,
+              "score": 0.595
+            },
+            "180": {
+              "n_faces": 2,
+              "score": 0.874
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 0.823
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         },
         {
           "thumb": "http://ssbproductions.com/sonar0110/tnIMG_2858.JPG",
           "full": "http://ssbproductions.com/sonar0110/IMG_2858.JPG",
-          "caption": "DJ: Dieselboy"
+          "caption": "DJ: Dieselboy",
+          "rotation_status": "ambiguous",
+          "rotation_checked_at": "2026-05-12T20:25:54.566875+00:00",
+          "rotation": 90,
+          "rotation_score": 1.154,
+          "rotation_scores": {
+            "0": {
+              "n_faces": 1,
+              "score": 0.709
+            },
+            "90": {
+              "n_faces": 2,
+              "score": 1.154
+            },
+            "180": {
+              "n_faces": 1,
+              "score": 0.677
+            },
+            "270": {
+              "n_faces": 2,
+              "score": 1.068
+            }
+          },
+          "rotation_method": "mediapipe_blazeface_short_v1"
         }
       ]
     },

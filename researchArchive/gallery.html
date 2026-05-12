@@ -38,8 +38,12 @@ const DATA_URL = 'data.json';
 
 // ssbproductions.com is HTTP-only with an expired HTTPS cert.
 // Proxy through wsrv.nl so images load on our HTTPS page.
-function proxyUrl(url) {
-  return 'https://wsrv.nl/?url=' + url.replace(/^https?:\/\//, '');
+// If the photo has a `rotation` field from detect_rotations.py, append
+// wsrv's &ro= param so the rotated image is delivered server-side.
+function proxyUrl(url, rotation) {
+  let u = 'https://wsrv.nl/?url=' + url.replace(/^https?:\/\//, '');
+  if (rotation && rotation !== 0) u += '&ro=' + rotation;
+  return u;
 }
 
 // Source HTML on ssbproductions.com has inconsistent extension casing
@@ -66,7 +70,7 @@ function showSlide(i) {
   img.style.display = 'block';
   errEl.style.display = 'none';
 
-  img.src = proxyUrl(p.full);
+  img.src = proxyUrl(p.full, p.rotation);
   img.onerror = () => {
     // First failure: retry with extension case swapped (e.g. .JPG → .jpg).
     const swapped = swapExtCase(p.full);
@@ -75,7 +79,7 @@ function showSlide(i) {
         img.style.display = 'none';
         errEl.style.display = 'block';
       };
-      img.src = proxyUrl(swapped);
+      img.src = proxyUrl(swapped, p.rotation);
     } else {
       img.style.display = 'none';
       errEl.style.display = 'block';
@@ -103,7 +107,7 @@ function buildThumbs() {
   strip.innerHTML = '';
   photos.forEach((p, i) => {
     const img = document.createElement('img');
-    img.src = proxyUrl(p.full);
+    img.src = proxyUrl(p.full, p.rotation);
     img.className = 'thumb';
     img.alt = p.caption || '';
     img.title = p.caption || '';
@@ -112,7 +116,7 @@ function buildThumbs() {
       const swapped = swapExtCase(p.full);
       if (swapped !== p.full) {
         img.onerror = null;
-        img.src = proxyUrl(swapped);
+        img.src = proxyUrl(swapped, p.rotation);
       }
     };
     img.addEventListener('click', () => showSlide(i));
