@@ -42,6 +42,17 @@ function proxyUrl(url) {
   return 'https://wsrv.nl/?url=' + url.replace(/^https?:\/\//, '');
 }
 
+// Source HTML on ssbproductions.com has inconsistent extension casing
+// (e.g. markup says .JPG but the actual file is .jpg, or vice versa).
+// Apache mod_speling fixes this on the source site, but wsrv.nl passes
+// the URL through exactly. So on load failure, retry with swapped case.
+function swapExtCase(url) {
+  return url.replace(/\.([a-zA-Z]+)$/, (_, ext) => {
+    const swapped = ext === ext.toLowerCase() ? ext.toUpperCase() : ext.toLowerCase();
+    return '.' + swapped;
+  });
+}
+
 let photos = [];
 let current = 0;
 
@@ -57,8 +68,18 @@ function showSlide(i) {
 
   img.src = proxyUrl(p.full);
   img.onerror = () => {
-    img.style.display = 'none';
-    errEl.style.display = 'block';
+    // First failure: retry with extension case swapped (e.g. .JPG → .jpg).
+    const swapped = swapExtCase(p.full);
+    if (swapped !== p.full) {
+      img.onerror = () => {
+        img.style.display = 'none';
+        errEl.style.display = 'block';
+      };
+      img.src = proxyUrl(swapped);
+    } else {
+      img.style.display = 'none';
+      errEl.style.display = 'block';
+    }
   };
 
   document.getElementById('slide-counter').textContent = `${current + 1} / ${photos.length}`;
@@ -86,6 +107,14 @@ function buildThumbs() {
     img.className = 'thumb';
     img.alt = p.caption || '';
     img.title = p.caption || '';
+    // Same case-swap fallback as the main slide.
+    img.onerror = () => {
+      const swapped = swapExtCase(p.full);
+      if (swapped !== p.full) {
+        img.onerror = null;
+        img.src = proxyUrl(swapped);
+      }
+    };
     img.addEventListener('click', () => showSlide(i));
     strip.appendChild(img);
   });
