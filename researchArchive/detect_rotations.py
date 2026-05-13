@@ -20,9 +20,15 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from datetime import datetime, timezone
 from io import BytesIO
+
+# Force line-buffered stdout so progress prints reach the log file immediately
+# even when stdout is redirected (otherwise Python uses 8KB block buffering).
+sys.stdout.reconfigure(line_buffering=True)
 
 import cv2
 import numpy as np
@@ -68,6 +74,16 @@ def make_detector():
         min_detection_confidence=MIN_CONF,
     )
     return mp_vision.FaceDetector.create_from_options(opts)
+
+
+# MediaPipe FaceDetector instances are not thread-safe — each worker thread
+# gets its own via threading.local. Created lazily on first use.
+_thread_local = threading.local()
+
+def get_thread_detector():
+    if not hasattr(_thread_local, "detector"):
+        _thread_local.detector = make_detector()
+    return _thread_local.detector
 
 
 def score_rotation(detector, bgr_img):
@@ -131,12 +147,21 @@ def _try_fetch(url, session):
 
 
 def download_image(full_url, session):
-    """Fetch image via wsrv.nl. Retries with swapped extension case on 404."""
+    """Fetch image via wsrv.nl. Retries with swapped extension case, and once
+    again after a backoff if the 404 looked transient (wsrv.nl sometimes
+    returns 404s under heavy concurrent load for images that do exist)."""
     content, err = _try_fetch(full_url, session)
     if content is None and err and err.startswith("http 404"):
         swapped = _swap_ext_case(full_url)
         if swapped != full_url:
-            content, err = _try_fetch(swapped, session)
+            c2, _ = _try_fetch(swapped, session)
+            if c2 is not None:
+                content = c2
+                err = None
+    # Both cases 404 → could be transient wsrv overload. Back off and try once more.
+    if content is None and err and err.startswith("http 404"):
+        time.sleep(3)
+        content, err = _try_fetch(full_url, session)
     if content is None:
         return None, err
     arr = np.frombuffer(content, dtype=np.uint8)
@@ -172,21 +197,39 @@ def save_data(data):
     os.replace(tmp, DATA_FILE)
 
 
+def process_one(p, session):
+    """Worker fn: download + detect for a single photo. Mutates p in place.
+    Returns (status_label, info_str) for logging."""
+    img, err = download_image(p["full"], session)
+    p["rotation_checked_at"] = datetime.now(timezone.utc).isoformat()
+    if img is None:
+        p["rotation_status"] = f"download_error:{err}"
+        return "ERR", err
+    result = detect_best_rotation(get_thread_detector(), img)
+    p.update(result)
+    p["rotation_method"] = "mediapipe_blazeface_short_v1"
+    n_top = result["rotation_scores"][result["rotation"]]["n_faces"]
+    return "OK", (f"rot={result['rotation']:>3}  score={result['rotation_score']:.2f}  "
+                  f"faces={n_top}  status={result['rotation_status']}")
+
+
 # ── Main loop ────────────────────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=500,
-                    help="max photos to process this run (default 500)")
+                    help="max photos to process this run (default 500). Use 0 for no limit.")
     ap.add_argument("--delay", type=float, default=4.0,
-                    help="seconds between photo downloads (default 4)")
+                    help="seconds between photo submissions, per worker (default 4)")
+    ap.add_argument("--workers", type=int, default=1,
+                    help="concurrent worker threads (default 1). 10 is a good bulk-run value.")
     ap.add_argument("--event", type=str, default=None,
                     help="only process photos whose event URL contains this string")
     ap.add_argument("--recheck", action="store_true",
                     help="re-process photos even if already checked")
     ap.add_argument("--retry-errors", action="store_true",
                     help="re-process photos whose previous run hit a download error")
-    ap.add_argument("--save-every", type=int, default=10,
-                    help="flush data.json to disk after every N photos (default 10)")
+    ap.add_argument("--save-every", type=int, default=50,
+                    help="flush data.json to disk after every N completed photos (default 50)")
     args = ap.parse_args()
 
     if not os.path.exists(MODEL_PATH):
@@ -196,9 +239,12 @@ def main():
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    detector = make_detector()
     session = requests.Session()
     session.headers.update({"User-Agent": UA})
+    # Allow many parallel keep-alive connections to wsrv
+    adapter = requests.adapters.HTTPAdapter(pool_connections=args.workers,
+                                            pool_maxsize=args.workers * 2)
+    session.mount("https://", adapter)
 
     pending = list(iter_pending_photos(
         data, recheck=args.recheck, retry_errors=args.retry_errors, event_slug=args.event))
@@ -207,43 +253,78 @@ def main():
         print("Nothing to do — all photos already have rotation_checked_at.")
         return
 
-    todo = pending[:args.limit]
+    todo = pending if args.limit == 0 else pending[:args.limit]
     print(f"Pending photos: {total_pending}.  Processing {len(todo)} this run.")
-    print(f"Delay: {args.delay}s between downloads.  ETA: {len(todo)*args.delay/60:.1f} min minimum.\n")
+    print(f"Workers: {args.workers}.  Delay per worker: {args.delay}s.\n")
 
-    processed = 0
-    errors = 0
     start = time.time()
+    save_lock = threading.Lock()
+    completed = 0
+    errors = 0
 
-    for ei, pi, ev, p in todo:
-        url = p["full"]
-        img, err = download_image(url, session)
-        if img is None:
-            errors += 1
-            p["rotation_status"] = f"download_error:{err}"
-            p["rotation_checked_at"] = datetime.now(timezone.utc).isoformat()
-            print(f"  [{processed+1}/{len(todo)}] {ev['name'][:40]:40} ERR {err}: {url}")
-        else:
-            result = detect_best_rotation(detector, img)
-            p.update(result)
-            p["rotation_method"] = "mediapipe_blazeface_short_v1"
-            p["rotation_checked_at"] = datetime.now(timezone.utc).isoformat()
-            n_top = result["rotation_scores"][result["rotation"]]["n_faces"]
-            print(f"  [{processed+1}/{len(todo)}] {ev['name'][:40]:40} -> rot={result['rotation']:>3}  "
-                  f"score={result['rotation_score']:.2f}  faces={n_top}  status={result['rotation_status']}")
+    # Serial fast-path: keeps existing single-thread behavior unchanged for small runs.
+    if args.workers <= 1:
+        for ei, pi, ev, p in todo:
+            label, info = process_one(p, session)
+            completed += 1
+            if label == "ERR":
+                errors += 1
+            print(f"  [{completed}/{len(todo)}] {ev['name'][:40]:40} {label} {info}")
+            if completed % args.save_every == 0:
+                save_data(data)
+            if completed < len(todo) and args.delay > 0:
+                time.sleep(args.delay)
+        save_data(data)
+    else:
+        # Parallel mode: keep (workers * 2) futures in flight at any time, so
+        # submission and result-collection are interleaved. (The previous version
+        # submitted all 41k futures first — workers ran but nothing was logged or
+        # saved until submission finished, which never happened in practice.)
+        meta = {}
+        in_flight = set()
+        photo_iter = iter(todo)
 
-        processed += 1
-        if processed % args.save_every == 0:
-            save_data(data)
+        def submit_next(executor):
+            try:
+                _, _, ev, p = next(photo_iter)
+            except StopIteration:
+                return False
+            fut = executor.submit(process_one, p, session)
+            meta[fut] = (ev, p)
+            in_flight.add(fut)
+            if args.delay > 0:
+                time.sleep(args.delay)
+            return True
 
-        # Throttle — but skip the delay on the very last photo
-        if processed < len(todo):
-            time.sleep(args.delay)
+        with ThreadPoolExecutor(max_workers=args.workers) as ex:
+            for _ in range(args.workers * 2):
+                if not submit_next(ex):
+                    break
 
-    save_data(data)
+            while in_flight:
+                done, _ = wait(in_flight, return_when=FIRST_COMPLETED)
+                for fut in done:
+                    in_flight.discard(fut)
+                    ev, p = meta.pop(fut)
+                    try:
+                        label, info = fut.result()
+                    except Exception as e:
+                        label, info = "EXC", str(e)
+                    completed += 1
+                    if label != "OK":
+                        errors += 1
+                    print(f"  [{completed}/{len(todo)}] {ev['name'][:40]:40} {label} {info}")
+                    if completed % args.save_every == 0:
+                        with save_lock:
+                            save_data(data)
+                    submit_next(ex)
+        save_data(data)
+
     elapsed = time.time() - start
-    print(f"\nDone. Processed {processed} photos ({errors} errors) in {elapsed/60:.1f} min.")
-    print(f"Remaining pending: {total_pending - processed}")
+    rate = completed / elapsed if elapsed > 0 else 0
+    print(f"\nDone. Processed {completed} photos ({errors} errors) in {elapsed/60:.1f} min "
+          f"({rate:.2f} photos/sec).")
+    print(f"Remaining pending: {total_pending - completed}")
 
 
 if __name__ == "__main__":
