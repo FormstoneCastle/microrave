@@ -91,7 +91,8 @@ log = logging.getLogger("MicroRave")
 # =============================================================================
 
 # Row 1–2: DJ playlist selectors
-PIN_DJ = {1: 4, 2: 5, 3: 6, 4: 26, 5: 27, 6: 9}
+# DJ4 moved 26 → 10 (MOSI) so it lands on a labeled HAT pad. Requires SPI disabled.
+PIN_DJ = {1: 4, 2: 5, 3: 6, 4: 10, 5: 27, 6: 9}
 
 # Row 3: control buttons
 PIN_START  = 2
@@ -106,9 +107,10 @@ PIN_DIGITS = {
     0: 24,
 }
 
-# Row 7: volume (reserved — not yet wired)
+# Row 7: volume
+# Vol Down moved 0 → 8 (CE0); GPIO 0 is ID_SD (HAT EEPROM, reserved). Requires SPI disabled.
 PIN_VOL_UP   = 3
-PIN_VOL_DOWN = 0
+PIN_VOL_DOWN = 8
 
 # Row 8: door switch
 PIN_DOOR = 25
