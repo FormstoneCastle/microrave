@@ -21,29 +21,31 @@ import time
 import sys
 
 # ── GPIO Pin Assignments (BCM numbering) ──────────────────────────────────────
-# GPIO 14/15 skipped (UART); GPIO 7/8 skipped (SPI0 CS); GPIO 26/27 used for SW4/SW5
-# GPIO 10 (pin 19) unavailable — ribbon cable missing that pin; SW7 uses GPIO 2 (I2C SDA, unused)
+# Adafruit Perma-Proto Pi HAT — all pins land on labeled pads.
+# Requires SPI disabled (raspi-config) to free GPIO 8 (CE0) and GPIO 10 (MOSI).
 SWITCHES = [
-    {"id":  1, "gpio":  4},
-    {"id":  2, "gpio":  5},
-    {"id":  3, "gpio":  6},
-    {"id":  4, "gpio": 26},
-    {"id":  5, "gpio": 27},
-    {"id":  6, "gpio":  9},
-    {"id":  7, "gpio":  2},
-    {"id":  8, "gpio": 11},
-    {"id":  9, "gpio": 12},
-    {"id": 10, "gpio": 13},
-    {"id": 11, "gpio": 16},
-    {"id": 12, "gpio": 17},
-    {"id": 13, "gpio": 18},
-    {"id": 14, "gpio": 19},
-    {"id": 15, "gpio": 20},
-    {"id": 16, "gpio": 21},
-    {"id": 17, "gpio": 22},
-    {"id": 18, "gpio": 23},
-    {"id": 19, "gpio": 24},
-    {"id": 20, "gpio": 25},
+    {"id":  1, "gpio":  4},   # DJ1   → HAT #4
+    {"id":  2, "gpio":  5},   # DJ2   → HAT #5
+    {"id":  3, "gpio":  6},   # DJ3   → HAT #6
+    {"id":  4, "gpio": 10},   # DJ4   → HAT MOSI  (was GPIO 26 — not on HAT)
+    {"id":  5, "gpio": 27},   # DJ5   → HAT #27
+    {"id":  6, "gpio":  9},   # DJ6   → HAT MISO
+    {"id":  7, "gpio":  2},   # Start → HAT SDA
+    {"id":  8, "gpio": 11},   # Stop  → HAT CLK
+    {"id":  9, "gpio": 12},   # +30s  → HAT #12
+    {"id": 10, "gpio": 13},   # 1     → HAT #13
+    {"id": 11, "gpio": 16},   # 2     → HAT #16
+    {"id": 12, "gpio": 17},   # 3     → HAT #17
+    {"id": 13, "gpio": 18},   # 4     → HAT #18
+    {"id": 14, "gpio": 19},   # 5     → HAT #19
+    {"id": 15, "gpio": 20},   # 6     → HAT #20
+    {"id": 16, "gpio": 21},   # 7     → HAT #21
+    {"id": 17, "gpio": 22},   # 8     → HAT #22
+    {"id": 18, "gpio": 23},   # 9     → HAT #23
+    {"id": 19, "gpio": 24},   # 0     → HAT #24
+    {"id": 20, "gpio": 25},   # Door  → HAT #25
+    {"id": 21, "gpio":  3},   # VolUp → HAT SCL
+    {"id": 22, "gpio":  8},   # VolDn → HAT CE0   (was GPIO 0 — ID_SD, reserved)
 ]
 
 POLL_HZ = 20  # reads per second
@@ -86,13 +88,14 @@ def draw_grid(stdscr, states):
                   curses.A_DIM)
     stdscr.addstr(2, 0, "─" * 52)
 
-    # Two-column grid: switches 1–10 left, 11–20 right
+    # Two-column grid: switches 1–11 left, 12–22 right
     ROW_START = 4
     COL_WIDTH = 26
+    PER_COL = 11
 
     for sw_id, gpio, closed in states:
-        col_idx = (sw_id - 1) // 10          # 0 = left column, 1 = right column
-        row_idx = (sw_id - 1) % 10           # 0–9 within the column
+        col_idx = (sw_id - 1) // PER_COL     # 0 = left column, 1 = right column
+        row_idx = (sw_id - 1) % PER_COL      # 0–10 within the column
 
         row = ROW_START + row_idx
         col = col_idx * COL_WIDTH
@@ -106,7 +109,7 @@ def draw_grid(stdscr, states):
         stdscr.addstr(row, col, f"{label}   {status}", attr)
 
     # Footer
-    footer_row = ROW_START + 11
+    footer_row = ROW_START + PER_COL + 1
     stdscr.addstr(footer_row,     0, "─" * 52)
     stdscr.addstr(footer_row + 1, 0,
                   f"Last read: {time.strftime('%H:%M:%S')}   ({POLL_HZ} Hz)",

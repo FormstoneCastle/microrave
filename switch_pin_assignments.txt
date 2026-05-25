@@ -1,48 +1,61 @@
 SWITCH MONITOR — PIN ASSIGNMENTS
 Raspberry Pi 5 / MicroRave Project
-Updated: 2026-04-25
+Hardware: Adafruit Perma-Proto Pi HAT (mounted directly on Pi 5 — no ribbon cable)
+Updated: 2026-05-14
 ================================================
 
 GROUND
-  All switch Commons (C) → daisy-chained → Physical Pin 6 (GND)
+  All switch Commons (C) → daisy-chained → HAT GND rail (any GND hole)
 
 WIRING PER SWITCH
   Common (C) → GND rail
-  NO         → GPIO pin (see table below)
+  NO         → GPIO pad on HAT (see table below)
   NC         → leave unconnected
 
-SW  | GPIO | Physical Pin | Notes
-----|------|--------------|-----------------------------------------------
- 1  |  4   |  7           |
- 2  |  5   |  29          |
- 3  |  6   |  31          |
- 4  |  26  |  37          | GPIO 7 unavailable (SPI0 CS1, kernel busy)
- 5  |  27  |  13          | GPIO 8 unavailable (SPI0 CS0, kernel busy)
- 6  |  9   |  21          |
- 7  |  2   |  3           | GPIO 10 unavailable (pin 19 missing from ribbon cable)
- 8  |  11  |  23          | I2C SDA pin — safe, MicroRave does not use I2C
- 9  |  12  |  32          |
-10  |  13  |  33          |
-11  |  16  |  36          |
-12  |  17  |  11          |
-13  |  18  |  12          |
-14  |  19  |  35          |
-15  |  20  |  38          |
-16  |  21  |  40          |
-17  |  22  |  15          |
-18  |  23  |  16          |
-19  |  24  |  18          |
-20  |  25  |  22          |
+REQUIRED PI CONFIG
+  SPI must be DISABLED (frees GPIO 7, 8, 9, 10, 11 for general use):
+    sudo raspi-config → Interface Options → SPI → No → reboot
 
-SKIPPED / UNAVAILABLE GPIO PINS
-  GPIO 7/8   — SPI0 CS0/CS1 (busy, claimed by kernel)
-  GPIO 10    — Physical pin 19 missing from ribbon cable
-  GPIO 14/15 — UART (reserved)
-  Pin 20     — GND, also missing from ribbon cable
+SW  | Button     | GPIO | HAT Pad | Phys Pin | Notes
+----|------------|------|---------|----------|---------------------------------
+ 1  | DJ1        |  4   | #4      | 7        |
+ 2  | DJ2        |  5   | #5      | 29       |
+ 3  | DJ3        |  6   | #6      | 31       |
+ 4  | DJ4        | 10   | MOSI    | 19       | Was GPIO 26 (not on HAT); SPI off required
+ 5  | DJ5        | 27   | #27     | 13       |
+ 6  | DJ6        |  9   | MISO    | 21       |
+ 7  | Start      |  2   | SDA     | 3        | I2C SDA — safe, MicroRave does not use I2C
+ 8  | Stop/Clear | 11   | CLK     | 23       |
+ 9  | +30s       | 12   | #12     | 32       |
+10  | Digit 1    | 13   | #13     | 33       |
+11  | Digit 2    | 16   | #16     | 36       |
+12  | Digit 3    | 17   | #17     | 11       |
+13  | Digit 4    | 18   | #18     | 12       |
+14  | Digit 5    | 19   | #19     | 35       |
+15  | Digit 6    | 20   | #20     | 38       |
+16  | Digit 7    | 21   | #21     | 40       |
+17  | Digit 8    | 22   | #22     | 15       |
+18  | Digit 9    | 23   | #23     | 16       |
+19  | Digit 0    | 24   | #24     | 18       |
+20  | Door       | 25   | #25     | 22       |
+21  | Vol Up     |  3   | SCL     | 5        | I2C SCL — safe, MicroRave does not use I2C
+22  | Vol Down   |  8   | CE0     | 24       | SPI off required
+
+UNUSED / SPARE PADS ON THE HAT (available for future expansion)
+  TXD  (GPIO 14)  — Unused.  UART TX — disable serial in raspi-config first.
+  RXD  (GPIO 15)  — Unused.  UART RX — disable serial in raspi-config first.
+  CE1  (GPIO  7)  — Unused.  Already free (SPI is disabled).
+  +5V rail        — Unused.  Left side of HAT.
+  +3V rail        — Unused.  Right side of HAT.
+  GND rails       — Shared with all switch Commons; extra holes still available.
+
+DO NOT USE
+  GPIO 0/1   — ID_SD/ID_SC (HAT EEPROM, reserved by HAT spec — never use)
+  GPIO 26    — not broken out on the Perma-Proto HAT
 
 NOTES
   - Internal pull-up resistors enabled in software (no external resistors needed)
   - Switch OPEN  = pin reads HIGH (1)
   - Switch CLOSED = pin reads LOW  (0)
-  - MicroRave does NOT use I2C
-  - For final build: GPIO 10 (pin 19) can replace GPIO 2 for SW7 if full ribbon cable used
+  - MicroRave does NOT use I2C, SPI, or UART
+  - All 22 pads chosen are labeled on the HAT — no under-HAT jumpers required

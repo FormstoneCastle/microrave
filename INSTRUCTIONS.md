@@ -41,7 +41,7 @@ Row 3:  Start  Stop   +30s
 Row 4:  1      2      3
 Row 5:  4      5      6
 Row 6:  7      8      9
-Row 7:  VolUp  0      VolDn   (Vol not yet wired)
+Row 7:  VolUp  0      VolDn
 Row 8:  Door Switch
 ```
 
@@ -105,7 +105,8 @@ Supported formats: `.mp3  .wav  .ogg  .flac  .m4a`
 - **Pi 5** — GPIO via `lgpio` (NOT RPi.GPIO — doesn't work on Pi 5)
 - **Display** — HDMI fullscreen 7-segment clock, green on black
 - **Audio** — HDMI → TV speakers
-- **20 switches** wired (SPDT, NO→GPIO, internal pull-up)
+- **22 switches** wired (SPDT, NO→GPIO, internal pull-up) — all on labeled Adafruit Perma-Proto Pi HAT pads
+- **SPI disabled** in `raspi-config` (frees CE0/MOSI for switch inputs)
 - **Arduino UNO** — USB to Pi, controls DJ indicator lights via relay board
 
 ---

@@ -91,7 +91,8 @@ log = logging.getLogger("MicroRave")
 # =============================================================================
 
 # Row 1–2: DJ playlist selectors
-PIN_DJ = {1: 4, 2: 5, 3: 6, 4: 26, 5: 27, 6: 9}
+# DJ4 moved 26 → 10 (MOSI) so it lands on a labeled HAT pad. Requires SPI disabled.
+PIN_DJ = {1: 4, 2: 5, 3: 6, 4: 10, 5: 27, 6: 9}
 
 # Row 3: control buttons
 PIN_START  = 2
@@ -106,9 +107,10 @@ PIN_DIGITS = {
     0: 24,
 }
 
-# Row 7: volume (reserved — not yet wired)
+# Row 7: volume
+# Vol Down moved 0 → 8 (CE0); GPIO 0 is ID_SD (HAT EEPROM, reserved). Requires SPI disabled.
 PIN_VOL_UP   = 3
-PIN_VOL_DOWN = 0
+PIN_VOL_DOWN = 8
 
 # Row 8: door switch
 PIN_DOOR = 25
@@ -127,7 +129,14 @@ EASTER_EGG_DIR    = os.path.join(SOUNDS_DIR, "easter")
 BEEP_SOUND        = os.path.join(SOUNDS_DIR, "beep.mp3")
 DING_SOUND        = os.path.join(SOUNDS_DIR, "ding.mp3")
 VOLUME_DEFAULT    = 70    # 0–100
-VOLUME_STEP       = 5
+VOLUME_STEP       = 10
+
+# Hidden recovery code: typing this digit sequence anywhere on the keypad
+# runs /usr/local/bin/microrave-wifi-restore-defaults — which tears down AP
+# mode and re-enables client autoconnect on home/laptop/phone profiles.
+# Use this when you want the Pi to rejoin a known WiFi network (e.g. at home).
+PANIC_WIFI_CODE   = "4108617369"
+PANIC_WIFI_SCRIPT = "/usr/local/bin/microrave-wifi-restore-defaults"
 DOOR_OPEN_TIMEOUT   = 60    # seconds before auto-cancel when door left open; 0 = disabled
 ENTRY_IDLE_TIMEOUT  = 60    # seconds on 0000 screen with no input before returning to clock
 DEBOUNCE_S        = 0.05  # seconds to ignore re-triggers after a switch edge
@@ -137,7 +146,11 @@ GPIO_POLL_HZ      = 50    # GPIO polling rate
 RANDOM_DJ_ON_FINISH = True   # set False to disable random DJ selection
 DJ_RACE_SEQUENCE    = [1, 2, 3, 6, 5, 4]  # clockwise around the 2×3 light grid
 DJ_RACE_LAPS        = 3      # full laps before landing
-DJ_RACE_STEP_S      = 0.12   # seconds per step
+DJ_RACE_STEP_S      = 0.12   # seconds per step (random-DJ race after sessions)
+
+# Easter egg DJ-light chase: own slower step so each LED is clearly visible and
+# the Arduino isn't getting hammered with serial commands for the entire egg.
+EGG_CHASE_STEP_S    = 0.25   # seconds per step (cw/ccw chase during egg playback)
 
 # Easter egg trigger map
 # key = digit string as typed; seconds/mm/ss define the countdown
@@ -153,6 +166,9 @@ EASTER_EGGS: dict[str, dict] = {
     "67":   {"folder": "067",  "seconds": 67,   "mm": 0,  "ss": 67},
     "6767": {"folder": "6767", "seconds": 67,   "mm": 0,  "ss": 67},
     "8008": {"folder": "8008", "seconds": 4808, "mm": 80, "ss": 8},
+    "911":  {"folder": "911",  "seconds": 551,  "mm": 9,  "ss": 11},
+    "923":  {"folder": "923",  "seconds": 563,  "mm": 9,  "ss": 23},
+    "7734": {"folder": "7734", "seconds": 4654, "mm": 77, "ss": 34},
 }
 
 RACE_DURATION = 3.0   # seconds for race-around animation
@@ -383,6 +399,11 @@ class PlaylistManager:
                 self._lists[n] = []
                 log.warning("DJ%d folder not found: %s", n, folder)
         self._sel = 1
+        # Bag shuffle state: each DJ has its own queue. Bags survive across
+        # sessions, so short countdowns rotate through the whole folder before
+        # any track repeats.
+        self._bags: dict[int, list] = {n: [] for n in range(1, 7)}
+        self._last_track: dict[int, str | None] = {n: None for n in range(1, 7)}
 
     def select(self, dj: int):
         if 1 <= dj <= 6:
@@ -393,7 +414,32 @@ class PlaylistManager:
     def selected(self) -> int:
         return self._sel
 
+    def next_track(self) -> str | None:
+        """Bag-shuffle the next track for the currently-selected DJ.
+        Each track plays once per bag before any repeat. When the bag is
+        empty it's refilled with a fresh shuffle, and we swap positions if
+        the new first track would be the same as the just-played one
+        (prevents back-to-back duplicates at bag boundaries)."""
+        dj = self._sel
+        tracks = self._lists.get(dj, [])
+        if not tracks:
+            return None
+        if not self._bags[dj]:
+            new_bag = list(tracks)
+            random.shuffle(new_bag)
+            if len(new_bag) > 1 and new_bag[0] == self._last_track[dj]:
+                new_bag[0], new_bag[1] = new_bag[1], new_bag[0]
+            self._bags[dj] = new_bag
+            log.info("DJ%d bag refilled (%d tracks)", dj, len(new_bag))
+        track = self._bags[dj].pop(0)
+        self._last_track[dj] = track
+        log.info("DJ%d next: %s (%d left in bag)",
+                 dj, os.path.basename(track), len(self._bags[dj]))
+        return track
+
     def shuffled_tracks(self) -> list:
+        """Legacy: one-shot uniform shuffle of the current DJ's tracks.
+        Kept for backwards compatibility — superseded by next_track()."""
         tracks = list(self._lists.get(self._sel, []))
         random.shuffle(tracks)
         return tracks
@@ -427,8 +473,9 @@ class AudioEngine:
     def __init__(self):
         self._ok      = False
         self._volume  = VOLUME_DEFAULT
-        self._tracks: list = []
+        self._tracks: list = []      # legacy: used only by easter eggs (single-track)
         self._t_idx   = 0
+        self._provider = None        # callable() -> next track path, or None to stop
         self._playing = False
         self._paused  = False
         self._lock    = threading.Lock()
@@ -441,7 +488,7 @@ class AudioEngine:
             os.environ["SDL_AUDIODRIVER"] = driver
             try:
                 pygame.mixer.quit()
-                pygame.mixer.pre_init(44100, -16, 2, 512)
+                pygame.mixer.pre_init(44100, -16, 2,4096)
                 pygame.mixer.init()
                 log.info("Audio driver: %s", driver)
                 self._ok = True
@@ -468,17 +515,25 @@ class AudioEngine:
     # Public API
     # ------------------------------------------------------------------
 
-    def start(self, tracks: list):
-        """Start normal playlist playback."""
-        if not self._ok or not tracks:
+    def start(self, track_provider):
+        """Start normal playlist playback.
+        track_provider() is called once now (to get the first track) and again
+        on every track-end (to get the next). Returns None to stop playback.
+        This lets PlaylistManager bag-shuffle on demand instead of cycling
+        through a fixed pre-shuffled list."""
+        if not self._ok or not callable(track_provider):
+            return
+        first = track_provider()
+        if not first:
             return
         with self._lock:
-            self._tracks          = tracks
+            self._tracks          = []   # not used in provider mode
             self._t_idx           = 0
+            self._provider        = track_provider
             self._playing         = True
             self._paused          = False
             self._egg_complete_cb = None
-        self._play(tracks[0])
+        self._play(first)
 
     def start_easter(self, track: str, on_complete=None):
         """Play a single easter egg clip. on_complete fires (from dispatch thread) when done."""
@@ -489,6 +544,7 @@ class AudioEngine:
         with self._lock:
             self._tracks          = [track]
             self._t_idx           = 0
+            self._provider        = None     # eggs use the legacy single-track path
             self._playing         = True
             self._paused          = False
             self._egg_complete_cb = on_complete
@@ -537,7 +593,7 @@ class AudioEngine:
         log.info("Volume → %d%%", self._volume)
 
     def volume_down(self):
-        self._volume = max(0, self._volume - VOLUME_STEP)
+        self._volume = max(10, self._volume - VOLUME_STEP)
         self._apply_volume()
         log.info("Volume → %d%%", self._volume)
 
@@ -603,9 +659,15 @@ class AudioEngine:
                     self._egg_complete_cb = None
                     self._playing = False
                     nxt = None
+                elif self._provider:
+                    # Bag-shuffle mode: ask PlaylistManager for the next track
+                    nxt = self._provider()
+                    if not nxt:
+                        self._playing = False
                 else:
+                    # Legacy: cycle a fixed list (no longer used by normal playback)
                     self._t_idx = (self._t_idx + 1) % max(1, len(self._tracks))
-                    nxt = self._tracks[self._t_idx]
+                    nxt = self._tracks[self._t_idx] if self._tracks else None
 
             if egg_cb:
                 egg_cb()
@@ -846,6 +908,9 @@ class MicroRaveApp:
         # DJ race state
         self._dj_race_abort = threading.Event()
 
+        # Easter egg DJ-light chase (dancing lights during egg playback)
+        self._egg_chase_abort = threading.Event()
+
         self._dispatch_thread = threading.Thread(target=self._dispatch, name="Dispatch", daemon=True)
         self._dispatch_thread.start()
 
@@ -858,6 +923,7 @@ class MicroRaveApp:
             on_finish = lambda:   self._post(self._on_finish),
         )
         self.buf = TimeEntryBuffer()
+        self._panic_buf = ""   # sliding window of last N digits for panic-code detection
 
         self.relays = RelayController()
         self._setup_gpio()
@@ -933,8 +999,15 @@ class MicroRaveApp:
 
     def _poll_gpio(self):
         interval = 1.0 / GPIO_POLL_HZ
+        last_iter = time.monotonic()
+        # Anything >3x our target interval (60ms when polling at 50Hz) is a stall worth logging.
+        stall_threshold = interval * 3
         while not self._gpio_stop.is_set():
             now = time.monotonic()
+            gap = now - last_iter
+            if gap > stall_threshold:
+                log.warning("GPIO poll stall: %.0fms gap (target %.0fms)", gap * 1000, interval * 1000)
+            last_iter = now
             for pin in self._all_pins:
                 level = lgpio.gpio_read(self._chip, pin)
                 if level == self._pin_prev[pin]:
@@ -977,6 +1050,12 @@ class MicroRaveApp:
     def _on_digit(self, digit: int):
         log.info("Button: %d", digit)
         self.audio.beep()
+        # Hidden recovery code — sliding-window match across all states
+        self._panic_buf = (self._panic_buf + str(digit))[-len(PANIC_WIFI_CODE):]
+        if self._panic_buf == PANIC_WIFI_CODE:
+            self._panic_buf = ""
+            self._trigger_wifi_panic()
+            return
         if self._state in (State.IDLE, State.ENTERING_TIME):
             was_idle = self._state == State.IDLE
             if self.buf._from_add30:
@@ -994,32 +1073,41 @@ class MicroRaveApp:
     def _on_start(self):
         log.info("Button: START")
         self.audio.beep()
-        if self._state == State.ENTERING_TIME and not self.buf.is_zero():
-            self._begin_countdown()
-        elif self._state == State.PAUSED:
+        if self._state == State.PAUSED:
             self._resume_countdown()
+        elif self._state == State.ENTERING_TIME and not self.buf.is_zero():
+            self._begin_countdown()
+        elif self._state in (State.IDLE, State.ENTERING_TIME) and self.buf.is_zero():
+            # User pressed START without entering a time — prompt them by flashing 0000
+            self._state = State.ENTERING_TIME
+            self._flash_zero_prompt()
+            self._start_entry_timer()
 
     def _on_stop(self):
         log.info("Button: STOP")
         self.audio.beep()
         self._race_abort.set()   # cancel any running easter egg animation
+        self._stop_egg_chase()
         self._cancel_door_timer()
         self.timer.stop()
         self.audio.stop()
         self.buf.clear()
         self._state = State.ENTERING_TIME
         self.display.show("0000")
+        self.relays.set_dj(self.playlists.selected)  # restore DJ light (no-op unless easter egg ran)
         log.info("Cleared — ready for input.")
         self._start_entry_timer()
 
     def _on_door_timeout(self):
         log.info("Door left open — auto-cancelled.")
         self._race_abort.set()
+        self._stop_egg_chase()
         self.timer.stop()
         self.audio.stop()
         self.buf.clear()
         self._state = State.IDLE
         self._show_clock(force=True)
+        self.relays.set_dj(self.playlists.selected)  # restore DJ light (no-op unless easter egg ran)
 
     def _on_add_30(self):
         log.info("Button: +30s")
@@ -1078,10 +1166,12 @@ class MicroRaveApp:
     def _on_finish(self):
         log.info("Countdown finished!")
         self._cancel_door_timer()
+        self._stop_egg_chase()
         self._state = State.FINISHED
         self.buf.clear()
         self.audio.ding()
         self.display.show("0000")
+        self.relays.set_dj(self.playlists.selected)  # restore DJ light (no-op unless easter egg ran)
         t = threading.Timer(3.0, lambda: self._post(self._go_idle))
         t.daemon = True
         t.start()
@@ -1121,11 +1211,53 @@ class MicroRaveApp:
             log.info("Random DJ selected after session: DJ%d", target_dj)
             self._post(self._flash_dj, target_dj)
 
+    def _start_egg_chase(self) -> None:
+        """Start the DJ-light chase animation that runs for the whole easter
+        egg (animation + audio + countdown). Cycles clockwise, then
+        counterclockwise, then repeats — until _stop_egg_chase is called."""
+        self._egg_chase_abort.clear()
+        t = threading.Thread(target=self._egg_chase_worker, name="EggChase", daemon=True)
+        t.start()
+
+    def _egg_chase_worker(self) -> None:
+        cw  = DJ_RACE_SEQUENCE
+        ccw = list(reversed(DJ_RACE_SEQUENCE))
+        clockwise = True
+        while not self._egg_chase_abort.is_set():
+            seq = cw if clockwise else ccw
+            for dj in seq:
+                if self._egg_chase_abort.is_set():
+                    break
+                self.relays.set_dj(dj)
+                time.sleep(EGG_CHASE_STEP_S)
+            clockwise = not clockwise
+        # On exit, restore the selected DJ light so the post-egg state is correct
+        self.relays.set_dj(self.playlists.selected)
+
+    def _stop_egg_chase(self) -> None:
+        """Signal the chase to stop. Safe to call when no chase is running."""
+        self._egg_chase_abort.set()
+
     def _flash_dj(self, dj: int) -> None:
         self.display.show(f"dJ {dj}", colon=False)
         t = threading.Timer(1.5, lambda: self._post(self._restore_display))
         t.daemon = True
         t.start()
+
+    def _flash_zero_prompt(self) -> None:
+        """Flash 0000 three times to prompt the user to enter a time.
+        Fired when START is pressed with an empty buffer. Runs in a worker
+        thread so the dispatch loop stays responsive. Leaves the display on
+        '0000' at the end so the user can immediately start typing."""
+        def _flash():
+            on_s, off_s = 0.3, 0.2
+            for _ in range(3):
+                self.display.show("0000")
+                time.sleep(on_s)
+                self.display.show("    ", colon=False)
+                time.sleep(off_s)
+            self.display.show("0000")
+        threading.Thread(target=_flash, name="ZeroPromptFlash", daemon=True).start()
 
     # -------------------------------------------------------------------------
     # Easter egg handlers
@@ -1135,6 +1267,7 @@ class MicroRaveApp:
         auto_dur = egg.get("auto_duration", False)
         self._state = State.ANIMATING
         self._race_abort.clear()
+        self._start_egg_chase()   # DJ lights dance — chase cw/ccw for the duration of the egg
 
         entry_display = self.buf.display_str()  # capture typed digits before buffer clears
         track = random.choice(tracks)
@@ -1199,6 +1332,33 @@ class MicroRaveApp:
             self._post(self._on_finish)
 
     # -------------------------------------------------------------------------
+    # Hidden WiFi panic-restore (typed code re-enables all autoconnects)
+    # -------------------------------------------------------------------------
+
+    def _trigger_wifi_panic(self):
+        """Show ---- on the display and run the wifi-restore-defaults script
+        in a background thread. The script tears down AP mode, re-enables client
+        autoconnects (home/laptop/phone), and triggers a rescan — bringing the
+        Pi back onto a known WiFi network. Safe from the dispatch thread."""
+        log.warning("PANIC CODE matched — running %s", PANIC_WIFI_SCRIPT)
+        self.display.show("----", colon=False)
+        threading.Timer(2.5, lambda: self._post(self._restore_display)).start()
+
+        def _run():
+            try:
+                result = subprocess.run(
+                    ["sudo", PANIC_WIFI_SCRIPT],
+                    check=False, timeout=30,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                log.info("WiFi defaults restored (exit=%d)", result.returncode)
+                if result.stderr:
+                    log.warning("wifi-restore stderr: %s", result.stderr.decode().strip())
+            except Exception as exc:
+                log.warning("WiFi restore failed: %s", exc)
+        threading.Thread(target=_run, name="WiFiPanic", daemon=True).start()
+
+    # -------------------------------------------------------------------------
     # Helpers
     # -------------------------------------------------------------------------
 
@@ -1240,7 +1400,7 @@ class MicroRaveApp:
         log.info("Countdown: %ds (display %02d:%02d), DJ%d",
                  secs, self._cd_mm, self.buf.raw_ss(), self.playlists.selected)
         self._state = State.COUNTING_DOWN
-        self.audio.start(self.playlists.shuffled_tracks())
+        self.audio.start(self.playlists.next_track)
         self.timer.start(secs)
 
     def _pause_countdown(self):
@@ -1300,10 +1460,36 @@ class MicroRaveApp:
     # Main loop  (runs on main thread — owns pygame event pump and rendering)
     # -------------------------------------------------------------------------
 
+    def _start_scheduling_watchdog(self):
+        """Background thread that sleeps 20ms in a tight loop and logs any
+        scheduling gap > 60ms. Catches OS/kernel stalls that would also
+        starve the SDL audio callback — the most likely cause of brief clipping."""
+        def _watchdog():
+            target = 0.02
+            stall = 0.06
+            last = time.monotonic()
+            while True:
+                time.sleep(target)
+                now = time.monotonic()
+                gap = now - last
+                if gap > stall:
+                    log.warning("Scheduling watchdog stall: %.0fms (target %.0fms) — possible audio-clip cause",
+                                gap * 1000, target * 1000)
+                last = now
+        threading.Thread(target=_watchdog, name="SchedWatchdog", daemon=True).start()
+
     def run(self):
         log.info("Running — Ctrl+C or Esc to quit.")
+        self._start_scheduling_watchdog()
+        last_iter = time.monotonic()
         try:
             while True:
+                now = time.monotonic()
+                gap = now - last_iter
+                # Main loop targets 50ms (20fps). >150ms means we hung — possible audio cause.
+                if gap > 0.15:
+                    log.warning("Main loop stall: %.0fms gap (target 50ms)", gap * 1000)
+                last_iter = now
                 for ev in pygame.event.get():
                     if ev.type == pygame.QUIT:
                         return
