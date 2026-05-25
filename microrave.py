@@ -146,7 +146,11 @@ GPIO_POLL_HZ      = 50    # GPIO polling rate
 RANDOM_DJ_ON_FINISH = True   # set False to disable random DJ selection
 DJ_RACE_SEQUENCE    = [1, 2, 3, 6, 5, 4]  # clockwise around the 2×3 light grid
 DJ_RACE_LAPS        = 3      # full laps before landing
-DJ_RACE_STEP_S      = 0.12   # seconds per step
+DJ_RACE_STEP_S      = 0.12   # seconds per step (random-DJ race after sessions)
+
+# Easter egg DJ-light chase: own slower step so each LED is clearly visible and
+# the Arduino isn't getting hammered with serial commands for the entire egg.
+EGG_CHASE_STEP_S    = 0.25   # seconds per step (cw/ccw chase during egg playback)
 
 # Easter egg trigger map
 # key = digit string as typed; seconds/mm/ss define the countdown
@@ -395,6 +399,11 @@ class PlaylistManager:
                 self._lists[n] = []
                 log.warning("DJ%d folder not found: %s", n, folder)
         self._sel = 1
+        # Bag shuffle state: each DJ has its own queue. Bags survive across
+        # sessions, so short countdowns rotate through the whole folder before
+        # any track repeats.
+        self._bags: dict[int, list] = {n: [] for n in range(1, 7)}
+        self._last_track: dict[int, str | None] = {n: None for n in range(1, 7)}
 
     def select(self, dj: int):
         if 1 <= dj <= 6:
@@ -405,7 +414,32 @@ class PlaylistManager:
     def selected(self) -> int:
         return self._sel
 
+    def next_track(self) -> str | None:
+        """Bag-shuffle the next track for the currently-selected DJ.
+        Each track plays once per bag before any repeat. When the bag is
+        empty it's refilled with a fresh shuffle, and we swap positions if
+        the new first track would be the same as the just-played one
+        (prevents back-to-back duplicates at bag boundaries)."""
+        dj = self._sel
+        tracks = self._lists.get(dj, [])
+        if not tracks:
+            return None
+        if not self._bags[dj]:
+            new_bag = list(tracks)
+            random.shuffle(new_bag)
+            if len(new_bag) > 1 and new_bag[0] == self._last_track[dj]:
+                new_bag[0], new_bag[1] = new_bag[1], new_bag[0]
+            self._bags[dj] = new_bag
+            log.info("DJ%d bag refilled (%d tracks)", dj, len(new_bag))
+        track = self._bags[dj].pop(0)
+        self._last_track[dj] = track
+        log.info("DJ%d next: %s (%d left in bag)",
+                 dj, os.path.basename(track), len(self._bags[dj]))
+        return track
+
     def shuffled_tracks(self) -> list:
+        """Legacy: one-shot uniform shuffle of the current DJ's tracks.
+        Kept for backwards compatibility — superseded by next_track()."""
         tracks = list(self._lists.get(self._sel, []))
         random.shuffle(tracks)
         return tracks
@@ -439,8 +473,9 @@ class AudioEngine:
     def __init__(self):
         self._ok      = False
         self._volume  = VOLUME_DEFAULT
-        self._tracks: list = []
+        self._tracks: list = []      # legacy: used only by easter eggs (single-track)
         self._t_idx   = 0
+        self._provider = None        # callable() -> next track path, or None to stop
         self._playing = False
         self._paused  = False
         self._lock    = threading.Lock()
@@ -480,17 +515,25 @@ class AudioEngine:
     # Public API
     # ------------------------------------------------------------------
 
-    def start(self, tracks: list):
-        """Start normal playlist playback."""
-        if not self._ok or not tracks:
+    def start(self, track_provider):
+        """Start normal playlist playback.
+        track_provider() is called once now (to get the first track) and again
+        on every track-end (to get the next). Returns None to stop playback.
+        This lets PlaylistManager bag-shuffle on demand instead of cycling
+        through a fixed pre-shuffled list."""
+        if not self._ok or not callable(track_provider):
+            return
+        first = track_provider()
+        if not first:
             return
         with self._lock:
-            self._tracks          = tracks
+            self._tracks          = []   # not used in provider mode
             self._t_idx           = 0
+            self._provider        = track_provider
             self._playing         = True
             self._paused          = False
             self._egg_complete_cb = None
-        self._play(tracks[0])
+        self._play(first)
 
     def start_easter(self, track: str, on_complete=None):
         """Play a single easter egg clip. on_complete fires (from dispatch thread) when done."""
@@ -501,6 +544,7 @@ class AudioEngine:
         with self._lock:
             self._tracks          = [track]
             self._t_idx           = 0
+            self._provider        = None     # eggs use the legacy single-track path
             self._playing         = True
             self._paused          = False
             self._egg_complete_cb = on_complete
@@ -615,9 +659,15 @@ class AudioEngine:
                     self._egg_complete_cb = None
                     self._playing = False
                     nxt = None
+                elif self._provider:
+                    # Bag-shuffle mode: ask PlaylistManager for the next track
+                    nxt = self._provider()
+                    if not nxt:
+                        self._playing = False
                 else:
+                    # Legacy: cycle a fixed list (no longer used by normal playback)
                     self._t_idx = (self._t_idx + 1) % max(1, len(self._tracks))
-                    nxt = self._tracks[self._t_idx]
+                    nxt = self._tracks[self._t_idx] if self._tracks else None
 
             if egg_cb:
                 egg_cb()
@@ -1179,7 +1229,7 @@ class MicroRaveApp:
                 if self._egg_chase_abort.is_set():
                     break
                 self.relays.set_dj(dj)
-                time.sleep(DJ_RACE_STEP_S)
+                time.sleep(EGG_CHASE_STEP_S)
             clockwise = not clockwise
         # On exit, restore the selected DJ light so the post-egg state is correct
         self.relays.set_dj(self.playlists.selected)
@@ -1350,7 +1400,7 @@ class MicroRaveApp:
         log.info("Countdown: %ds (display %02d:%02d), DJ%d",
                  secs, self._cd_mm, self.buf.raw_ss(), self.playlists.selected)
         self._state = State.COUNTING_DOWN
-        self.audio.start(self.playlists.shuffled_tracks())
+        self.audio.start(self.playlists.next_track)
         self.timer.start(secs)
 
     def _pause_countdown(self):
