@@ -409,6 +409,10 @@ class TimeEntryBuffer:
         # (e.g. 1+2 -> 0:12, 1+9+9 -> 1:99).
         if not self._typed and 1 <= digit <= 9:
             c = [0, digit, 0, 0]
+        elif len(self._typed) == 1 and 1 <= self._typed[0] <= 9:
+            # Second digit after minute-first: rebase as if first digit had
+            # been in SS-ones all along, then shift the new digit in.
+            c = [0, 0, self._typed[0], digit]
         else:
             c = self._d[1:] + [digit]
         if (c[0] * 10 + c[1]) * 60 + (c[2] * 10 + c[3]) <= self._MAX:
