@@ -177,8 +177,14 @@ EASTER_EGG_DIR    = os.path.join(SOUNDS_DIR, "easter")
 # runs /usr/local/bin/microrave-wifi-restore-defaults — which tears down AP
 # mode and re-enables client autoconnect on home/laptop/phone profiles.
 # Use this when you want the Pi to rejoin a known WiFi network (e.g. at home).
-PANIC_WIFI_CODE   = "4108617369"
-PANIC_WIFI_SCRIPT = "/usr/local/bin/microrave-wifi-restore-defaults"
+APMODE_CODE   = "4108617369"
+APMODE_SCRIPT = "/usr/local/bin/microrave-wifi-restore-defaults"
+
+# Hidden tally-reset code: typing this anywhere on the keypad clears
+# playcounts.json (the per-track play tally). Useful between events when
+# starting a fresh count. Both hidden codes are 10 digits — _code_buf below
+# is sized accordingly.
+RESET_TALLY_CODE = "4103744720"
 DOOR_OPEN_TIMEOUT   = 60    # seconds before auto-cancel when door left open; 0 = disabled
 ENTRY_IDLE_TIMEOUT  = 60    # seconds on 0000 screen with no input before returning to clock
 # DEBOUNCE_S and GPIO_POLL_HZ live in adapters_hw.py (with HardwareInput).
@@ -398,7 +404,13 @@ class TimeEntryBuffer:
         self._from_add30 = False      # True when buffer was last set by +30 (not manual digits)
 
     def push(self, digit: int):
-        c = self._d[1:] + [digit]
+        # First digit 1-9 means whole minutes (1 -> 1:00, 5 -> 5:00).
+        # Once a second digit lands, fall back to shift-from-right
+        # (e.g. 1+2 -> 0:12, 1+9+9 -> 1:99).
+        if not self._typed and 1 <= digit <= 9:
+            c = [0, digit, 0, 0]
+        else:
+            c = self._d[1:] + [digit]
         if (c[0] * 10 + c[1]) * 60 + (c[2] * 10 + c[3]) <= self._MAX:
             self._d          = c
             self._typed      = (self._typed + [digit])[-4:]
@@ -498,7 +510,7 @@ class MicroRaveApp:
             on_finish = lambda:   self._post(self._on_finish),
         )
         self.buf = TimeEntryBuffer()
-        self._panic_buf = ""   # sliding window of last N digits for panic-code detection
+        self._code_buf = ""    # sliding window of last 10 digits for hidden-code detection
 
         self.relays = make_relays()
         self._setup_gpio()
@@ -590,11 +602,17 @@ class MicroRaveApp:
     def _on_digit(self, digit: int):
         log.info("Button: %d", digit)
         self.audio.beep()
-        # Hidden recovery code — sliding-window match across all states
-        self._panic_buf = (self._panic_buf + str(digit))[-len(PANIC_WIFI_CODE):]
-        if self._panic_buf == PANIC_WIFI_CODE:
-            self._panic_buf = ""
-            self._trigger_wifi_panic()
+        # Hidden codes — sliding-window match across all states. Both codes are
+        # 10 digits; a single buffer handles both. Order doesn't matter since
+        # the strings are unique.
+        self._code_buf = (self._code_buf + str(digit))[-10:]
+        if self._code_buf == APMODE_CODE:
+            self._code_buf = ""
+            self._trigger_apmode()
+            return
+        if self._code_buf == RESET_TALLY_CODE:
+            self._code_buf = ""
+            self._trigger_reset_tally()
             return
         if self._state in (State.IDLE, State.ENTERING_TIME):
             was_idle = self._state == State.IDLE
@@ -875,19 +893,19 @@ class MicroRaveApp:
     # Hidden WiFi panic-restore (typed code re-enables all autoconnects)
     # -------------------------------------------------------------------------
 
-    def _trigger_wifi_panic(self):
+    def _trigger_apmode(self):
         """Show ---- on the display and run the wifi-restore-defaults script
         in a background thread. The script tears down AP mode, re-enables client
         autoconnects (home/laptop/phone), and triggers a rescan — bringing the
         Pi back onto a known WiFi network. Safe from the dispatch thread."""
-        log.warning("PANIC CODE matched — running %s", PANIC_WIFI_SCRIPT)
+        log.warning("APMODE CODE matched — running %s", APMODE_SCRIPT)
         self.display.show("----", colon=False)
         threading.Timer(2.5, lambda: self._post(self._restore_display)).start()
 
         def _run():
             try:
                 result = subprocess.run(
-                    ["sudo", PANIC_WIFI_SCRIPT],
+                    ["sudo", APMODE_SCRIPT],
                     check=False, timeout=30,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 )
@@ -896,7 +914,19 @@ class MicroRaveApp:
                     log.warning("wifi-restore stderr: %s", result.stderr.decode().strip())
             except Exception as exc:
                 log.warning("WiFi restore failed: %s", exc)
-        threading.Thread(target=_run, name="WiFiPanic", daemon=True).start()
+        threading.Thread(target=_run, name="APMode", daemon=True).start()
+
+    def _trigger_reset_tally(self):
+        """Clear playcounts.json (per-track play tally). Flash CLr- on the
+        display for confirmation. In net/sim mode this is a no-op since no
+        tally is kept. Safe from the dispatch thread."""
+        log.warning("RESET TALLY CODE matched — clearing playcounts")
+        self.display.show("CLr-", colon=False)
+        threading.Timer(1.5, lambda: self._post(self._restore_display)).start()
+        try:
+            self.audio.clear_playcounts()
+        except Exception as exc:
+            log.warning("clear_playcounts failed: %s", exc)
 
     # -------------------------------------------------------------------------
     # Helpers

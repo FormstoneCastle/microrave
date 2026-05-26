@@ -17,9 +17,11 @@ Constants exported for callers that need them (e.g. startup checks):
   BEEP_SOUND, DING_SOUND
 """
 
+import datetime
 import json
 import logging
 import os
+import shutil
 import threading
 import time
 
@@ -49,6 +51,7 @@ RELAY_BAUD        = 9600
 # Audio
 _SOUNDS_DIR       = "sounds"
 PLAYCOUNTS_FILE   = "playcounts.json"
+PLAYCOUNTS_BACKUP_DIR = "playcount_history"
 BEEP_SOUND        = os.path.join(_SOUNDS_DIR, "beep.mp3")
 DING_SOUND        = os.path.join(_SOUNDS_DIR, "ding.mp3")
 VOLUME_DEFAULT    = 70    # 0–100
@@ -86,6 +89,55 @@ CHAR_SEGS: dict[str, set] = {
     '-': set('g'),
     ' ': set(),
 }
+
+
+# =============================================================================
+# PLAYCOUNTS HELPERS (shared by AudioHW and NetAudio)
+# =============================================================================
+# Both audio adapters need to read/write the same playcounts.json. Keeping
+# the logic at module level avoids duplicating it across adapters_hw and
+# adapters_net, and means both modes contribute to a single unified tally.
+
+def playcount_key(path: str) -> str:
+    """Tally key for `path`. Returns the full relative path with forward
+    slashes (e.g. "music/dj1/track.mp3", "sounds/easter/069/clip.mp3") so
+    the journal log and --stats output show which DJ folder a track lives
+    in. Both audio adapters use this so hardware and sim agree on keys."""
+    return path.replace("\\", "/")
+
+
+def load_playcounts() -> dict:
+    try:
+        with open(PLAYCOUNTS_FILE, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_playcounts(counts: dict) -> None:
+    try:
+        with open(PLAYCOUNTS_FILE, 'w') as f:
+            json.dump(counts, f, indent=2, sort_keys=True)
+    except Exception as exc:
+        log.warning("Could not save play counts: %s", exc)
+
+
+def backup_playcounts() -> None:
+    """Copy playcounts.json to playcount_history/<timestamp>_playcounts.json.
+    Silently skips if the source file does not exist. Logs but does not raise
+    on failure — a backup hiccup must not block the reset itself."""
+    if not os.path.exists(PLAYCOUNTS_FILE):
+        log.info("backup_playcounts: %s missing — nothing to back up", PLAYCOUNTS_FILE)
+        return
+    try:
+        os.makedirs(PLAYCOUNTS_BACKUP_DIR, exist_ok=True)
+        # Format: HH-MM-SS_DD-MM-YYYY_playcounts.json (e.g. 14-23-45_26-05-2026_playcounts.json)
+        stamp = datetime.datetime.now().strftime("%H-%M-%S_%d-%m-%Y")
+        dest = os.path.join(PLAYCOUNTS_BACKUP_DIR, f"{stamp}_playcounts.json")
+        shutil.copy2(PLAYCOUNTS_FILE, dest)
+        log.info("Playcounts backed up to %s", dest)
+    except Exception as exc:
+        log.warning("backup_playcounts failed: %s", exc)
 
 
 # =============================================================================
@@ -271,7 +323,7 @@ class AudioEngine:
         self._lock    = threading.Lock()
         self._done    = threading.Event()
         self._egg_complete_cb = None  # set during easter egg play
-        self._counts  = self._load_counts()
+        self._counts  = load_playcounts()
         self._save_counter = 0
 
         for driver in ("pipewire", "pulseaudio", "alsa", "dummy"):
@@ -401,26 +453,22 @@ class AudioEngine:
             log.error("Cannot load %s '%s': %s", label, path, exc)
             return None
 
-    def _load_counts(self) -> dict:
-        try:
-            with open(PLAYCOUNTS_FILE, 'r') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {}
-
-    def _save_counts(self):
-        try:
-            with open(PLAYCOUNTS_FILE, 'w') as f:
-                json.dump(self._counts, f, indent=2, sort_keys=True)
-        except Exception as exc:
-            log.warning("Could not save play counts: %s", exc)
+    def clear_playcounts(self):
+        """Wipe the in-memory tally and overwrite playcounts.json with {}.
+        Triggered by the RESET_TALLY_CODE hidden keypad sequence. The current
+        file is archived to playcount_history/ first so resets are reversible."""
+        backup_playcounts()
+        self._counts = {}
+        self._save_counter = 0
+        save_playcounts(self._counts)
+        log.info("Playcounts cleared")
 
     def _play(self, path: str):
-        key = os.path.basename(path)
+        key = playcount_key(path)
         self._counts[key] = self._counts.get(key, 0) + 1
         self._save_counter += 1
         if self._save_counter >= 5:
-            self._save_counts()
+            save_playcounts(self._counts)
             self._save_counter = 0
         try:
             pygame.mixer.music.load(path)

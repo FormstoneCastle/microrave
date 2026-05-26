@@ -30,6 +30,7 @@ Real rendering / audio / input handling are deferred to 3b–3e.
 """
 
 import asyncio
+import json
 import logging
 import os
 import threading
@@ -37,6 +38,17 @@ import time
 from typing import Callable
 
 from aiohttp import web, WSMsgType
+
+# Share the playcounts file path with the hardware audio adapter. The file
+# lives on the Pi and is written by AudioHW during real-hardware play; the
+# sim doesn't track plays but still needs to be able to clear the persistent
+# tally between events.
+from adapters_hw import (
+    backup_playcounts,
+    load_playcounts,
+    playcount_key,
+    save_playcounts,
+)
 
 log = logging.getLogger("MicroRave.net")
 
@@ -875,10 +887,25 @@ class NetAudio:
         self._track_provider: Callable[[], str] | None = None
         self._easter_on_complete: Callable[[], None] | None = None
         self._music_volume: float = 0.8
+        # Sim contributes to the same unified playcounts.json as hardware.
+        # Save cadence matches AudioHW: every 5 plays, to limit SD writes.
+        self._counts = load_playcounts()
+        self._save_counter = 0
         # Register inbound handlers — browser reports playback completion.
         self._server.register_handler("music_ended", self._on_music_ended)
         self._server.register_handler("easter_ended", self._on_easter_ended)
         log.info("NetAudio ready (browser playback via /music + /sounds)")
+
+    def _record_play(self, path: str) -> None:
+        """Tally a play of `path` and flush to disk every 5 plays. Mirrors
+        AudioHW._play's counting logic so hardware and sim agree."""
+        key = playcount_key(path)
+        self._counts[key] = self._counts.get(key, 0) + 1
+        self._save_counter += 1
+        if self._save_counter >= 5:
+            save_playcounts(self._counts)
+            self._save_counter = 0
+        log.info("Playing: %s (play #%d)", key, self._counts[key])
 
     # ------------------------------------------------------------------
     # Outbound: tell the browser what to play.
@@ -896,6 +923,7 @@ class NetAudio:
         if not track:
             log.warning("track_provider returned empty path")
             return
+        self._record_play(track)
         self._server.broadcast({
             "type": "audio.start",
             "url": _path_to_url(track),
@@ -904,6 +932,7 @@ class NetAudio:
 
     def start_easter(self, track: str, on_complete=None) -> None:
         self._easter_on_complete = on_complete
+        self._record_play(track)
         self._server.broadcast({
             "type": "audio.start_easter",
             "url": _path_to_url(track),
@@ -945,6 +974,16 @@ class NetAudio:
         self._server.broadcast({"type": "audio.volume", "volume": self._music_volume})
         log.info("Volume → %d%%", round(self._music_volume * 100))
 
+    def clear_playcounts(self) -> None:
+        # Sim now tallies into the same playcounts.json as hardware, so reset
+        # mirrors AudioHW.clear_playcounts: archive first, then wipe both the
+        # in-memory dict and the on-disk file.
+        backup_playcounts()
+        self._counts = {}
+        self._save_counter = 0
+        save_playcounts(self._counts)
+        log.info("Playcounts cleared")
+
     def notify_music_end(self) -> None:
         # Hardware-only path (pygame USEREVENT). In net mode the browser
         # reports end-of-track via _on_music_ended below, so this no-ops.
@@ -969,6 +1008,7 @@ class NetAudio:
             return
         if not track:
             return
+        self._record_play(track)
         self._server.broadcast({
             "type": "audio.start",
             "url": _path_to_url(track),
